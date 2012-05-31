@@ -28,7 +28,7 @@ public class AppTest {
      */
     @Test
     public void serverSetupTest() {
-        Server server = null;
+        Server server = new DefaultServer();
         assertNotNull(server);
         assertFalse(server.isRunning());
         assertFalse(server.hasConnections());
