@@ -1,38 +1,43 @@
 package ping.pong.net;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.AfterClass;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import ping.pong.net.server.Server;
+import static org.junit.Assert.*;
 
 /**
- * Unit test for simple App.
+ *
+ * @author mfullen
  */
-public class AppTest 
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public AppTest( String testName )
-    {
-        super( testName );
+public class AppTest {
+
+    public AppTest() {
+    }
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
     }
 
     /**
-     * @return the suite of tests being tested
+     * Test of main method, of class App.
      */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
+    @Test
+    public void serverSetupTest() {
+        Server server = null;
+        assertNotNull(server);
+        assertFalse(server.isRunning());
+        assertFalse(server.hasConnections());
 
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
+        server.start();
+        assertTrue(server.isRunning());
+        assertFalse(server.hasConnections());
+
+        server.close();
+        assertFalse(server.isRunning());
     }
 }
