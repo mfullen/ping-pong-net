@@ -50,6 +50,12 @@ public interface Server<Message>
     boolean isListening();
 
     /**
+     * Gets the next available ConnectionId
+     * @return
+     */
+    int getNextAvailableId();
+
+    /**
      * Add a MessageListener
      * @param listener the listener to add
      */

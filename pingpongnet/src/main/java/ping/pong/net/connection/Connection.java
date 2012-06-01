@@ -6,8 +6,8 @@ import ping.pong.net.server.Server;
  *
  * @author mfullen
  */
-public interface Connection<Message extends Envelope<Message>> extends
-        MessageSender<Message>,
+public interface Connection<Message> extends
+        MessageSender<Envelope<Message>>,
         Runnable
 {
     /**
@@ -25,11 +25,16 @@ public interface Connection<Message extends Envelope<Message>> extends
      * The identification number of the connection
      * @return identification number of the connection
      */
-    int getConnectionID();
+    int getConnectionId();
+
+    /**
+     * Set the connection Id
+     */
+    void setConnectionId(int id);
 
     /**
      * Gets the server that is hosting the connection
      * @return
      */
-    Server<Message> getServer();
+    Server<Envelope<Message>> getServer();
 }

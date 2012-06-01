@@ -51,12 +51,10 @@ public class ServerExceptionHandler
             else if (ex.getMessage().contains("Connection reset"))
             {
                 logger.error("Connection reset: Client Closed Connection foricibly.", ex);
-                //   ex.printStackTrace();
             }
             else if (ex.getMessage().contains("socket closed"))
             {
-                logger.error("Socket: Closed. Server Shutdown", ex);
-                // ex.printStackTrace();
+                logger.trace("Socket Closed. Server Shutdown");
             }
             else
             {

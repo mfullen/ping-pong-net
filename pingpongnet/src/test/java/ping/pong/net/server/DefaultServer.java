@@ -7,8 +7,6 @@ package ping.pong.net.server;
 import java.util.Collection;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.MessageListener;
-import ping.pong.net.server.Server;
-import ping.pong.net.server.ServerConnectionListener;
 
 /**
  *
@@ -84,6 +82,12 @@ class DefaultServer implements Server
 
     @Override
     public void removeConnectionListener(ServerConnectionListener connectionListener)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public int getNextAvailableId()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
