@@ -1,43 +1,115 @@
 package ping.pong.net;
 
+import ping.pong.net.client.Client;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.BeforeClass;
-import ping.pong.net.server.Server;
 import static org.junit.Assert.*;
+import ping.pong.net.client.ClientConnectionListener;
+import ping.pong.net.connection.Envelope;
+import ping.pong.net.connection.MessageListener;
 
 /**
  *
  * @author mfullen
  */
-public class AppTest {
-
-    public AppTest() {
+public class AppTest
+{
+    public AppTest()
+    {
     }
 
     @BeforeClass
-    public static void setUpClass() throws Exception {
+    public static void setUpClass() throws Exception
+    {
     }
 
     @AfterClass
-    public static void tearDownClass() throws Exception {
+    public static void tearDownClass() throws Exception
+    {
     }
 
     /**
      * Test of main method, of class App.
      */
     @Test
-    public void serverSetupTest() {
-        Server server = new DefaultServer();
-        assertNotNull(server);
-        assertFalse(server.isRunning());
-        assertFalse(server.hasConnections());
+    public void clientSetupTest()
+    {
+        Client client = new Client()
+        {
+            boolean connected = false;
+            boolean running = false;
 
-        server.start();
-        assertTrue(server.isRunning());
-        assertFalse(server.hasConnections());
+            @Override
+            public void start()
+            {
+                running = true;
+            }
 
-        server.close();
-        assertFalse(server.isRunning());
+            @Override
+            public void close()
+            {
+                running = false;
+            }
+
+            @Override
+            public boolean isRunning()
+            {
+                return running;
+            }
+
+            @Override
+            public boolean isConnected()
+            {
+                return connected;
+            }
+
+            @Override
+            public int getId()
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void addMessageListener(MessageListener listener)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void removeMessageListener(MessageListener listener)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void addConnectionListener(ClientConnectionListener listener)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void removeConnectionListener(ClientConnectionListener listener)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public void sendMessage(Object message)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        };
+        assertNotNull(client);
+        assertFalse(client.isConnected());
+        assertFalse(client.isRunning());
+
+        client.start();
+        assertTrue(client.isRunning());
+        assertFalse(client.isConnected());
+
+        client.close();
+        assertFalse(client.isRunning());
+        assertFalse(client.isConnected());
     }
 }
