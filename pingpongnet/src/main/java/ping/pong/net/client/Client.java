@@ -13,6 +13,8 @@ public interface Client<Message> extends MessageSender<Message>
 
     void close();
 
+    boolean isRunning();
+
     boolean isConnected();
 
     int getId();

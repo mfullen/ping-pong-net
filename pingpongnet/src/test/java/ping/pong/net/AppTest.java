@@ -1,43 +1,48 @@
 package ping.pong.net;
 
+import ping.pong.net.client.Client;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.BeforeClass;
-import ping.pong.net.server.Server;
 import static org.junit.Assert.*;
 
 /**
  *
  * @author mfullen
  */
-public class AppTest {
-
-    public AppTest() {
+public class AppTest
+{
+    public AppTest()
+    {
     }
 
     @BeforeClass
-    public static void setUpClass() throws Exception {
+    public static void setUpClass() throws Exception
+    {
     }
 
     @AfterClass
-    public static void tearDownClass() throws Exception {
+    public static void tearDownClass() throws Exception
+    {
     }
 
     /**
      * Test of main method, of class App.
      */
     @Test
-    public void serverSetupTest() {
-        Server server = new DefaultServer();
-        assertNotNull(server);
-        assertFalse(server.isRunning());
-        assertFalse(server.hasConnections());
+    public void clientSetupTest()
+    {
+        Client client = null;
+        assertNotNull(client);
+        assertFalse(client.isConnected());
+        assertFalse(client.isRunning());
 
-        server.start();
-        assertTrue(server.isRunning());
-        assertFalse(server.hasConnections());
+        client.start();
+        assertTrue(client.isRunning());
+        assertFalse(client.isConnected());
 
-        server.close();
-        assertFalse(server.isRunning());
+        client.close();
+        assertFalse(client.isRunning());
+        assertFalse(client.isConnected());
     }
 }

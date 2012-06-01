@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package ping.pong.net;
+package ping.pong.net.server;
 
 import java.util.Collection;
 import ping.pong.net.connection.Connection;
@@ -35,7 +35,7 @@ class DefaultServer implements Server
     }
 
     @Override
-    public void close()
+    public void shutdown()
     {
         this.running = false;
     }
@@ -47,7 +47,7 @@ class DefaultServer implements Server
     }
 
     @Override
-    public Collection getConnections()
+    public Collection<Connection> getConnections()
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -59,7 +59,7 @@ class DefaultServer implements Server
     }
 
     @Override
-    public boolean isRunning()
+    public boolean isListening()
     {
         return this.running;
     }
@@ -87,5 +87,5 @@ class DefaultServer implements Server
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
 }
