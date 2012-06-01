@@ -18,14 +18,16 @@ import ping.pong.net.connection.MessageListener;
  *
  * @author mfullen
  */
-public final class IoServerImpl<Message> implements Server<Envelope<Message>>
+public final class IoServerImpl<MessageType> implements
+        Server<Envelope<MessageType>>
 {
     public static final Logger logger = LoggerFactory.getLogger(IoServerImpl.class);
+    private static final String CANT_ADD_LISTENER = "You must add Listeners before the server is started";
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
+    private ServerConnectionManager<MessageType> serverConnectionManager = null;
+    protected ConnectionConfiguration config = null;
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
     protected List<ServerConnectionListener> connectionListeners = new ArrayList<ServerConnectionListener>();
-    private ServerConnectionManager serverConnectionManager = null;
-    protected ConnectionConfiguration config = null;
 
     public IoServerImpl()
     {
@@ -38,7 +40,7 @@ public final class IoServerImpl<Message> implements Server<Envelope<Message>>
     }
 
     @Override
-    public void broadcast(Envelope<Message> message)
+    public void broadcast(Envelope<MessageType> message)
     {
         logger.info("Broadcasting Message: {}", message);
         for (Connection connection : this.connectionsMap.values())
@@ -55,8 +57,8 @@ public final class IoServerImpl<Message> implements Server<Envelope<Message>>
             logger.error("Cannot start server. It is already running");
             return;
         }
-        this.serverConnectionManager = new ServerConnectionManager(config);
-        this.serverConnectionManager.start();
+        this.serverConnectionManager = new ServerConnectionManager(config, this);
+        new Thread(this.serverConnectionManager).start();
         logger.info("Server started {} on port {}", config.getIpAddress(), config.getPort());
     }
 
@@ -70,6 +72,8 @@ public final class IoServerImpl<Message> implements Server<Envelope<Message>>
         }
 
         this.serverConnectionManager.shutdown();
+        this.serverConnectionManager = null;
+        logger.info("Server shutdown");
     }
 
     @Override
@@ -98,18 +102,18 @@ public final class IoServerImpl<Message> implements Server<Envelope<Message>>
     @Override
     public boolean isListening()
     {
-        return serverConnectionManager != null && serverConnectionManager.isListening() && serverConnectionManager.isAlive();
+        return serverConnectionManager != null && serverConnectionManager.isListening();
     }
 
     @Override
-    public void addMessageListener(MessageListener<? super Connection, Envelope<Message>> listener)
+    public void addMessageListener(MessageListener<? super Connection, Envelope<MessageType>> listener)
     {
         boolean added = this.messageListeners.add(listener);
         logger.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
     }
 
     @Override
-    public void removeMessageListener(MessageListener<? super Connection, Envelope<Message>> listener)
+    public void removeMessageListener(MessageListener<? super Connection, Envelope<MessageType>> listener)
     {
         boolean removed = this.messageListeners.remove(listener);
         logger.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");
@@ -127,5 +131,41 @@ public final class IoServerImpl<Message> implements Server<Envelope<Message>>
     {
         boolean removed = this.connectionListeners.remove(connectionListener);
         logger.trace("Remove Connection Listener: {}", removed ? "Successful" : "Failure");
+    }
+
+    private boolean hasConnectionManager()
+    {
+        return this.serverConnectionManager == null ? false : true;
+    }
+
+    synchronized void addConnection(Connection<MessageType> connection)
+    {
+        int id = this.getNextAvailableId();
+        connection.setConnectionId(id);
+        
+        this.connectionsMap.put(id, connection);
+
+        for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
+        {
+            serverConnectionListener.connectionAdded(this, connection);
+        }
+    }
+
+    @Override
+    public synchronized int getNextAvailableId()
+    {
+        int id = 1;
+
+        boolean needsId = true;
+        while (needsId)
+        {
+            if (!this.connectionsMap.containsKey(id))
+            {
+                needsId = false;
+                return id;
+            }
+            id++;
+        }
+        return id;
     }
 }

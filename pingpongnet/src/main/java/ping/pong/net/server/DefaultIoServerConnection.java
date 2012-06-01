@@ -8,7 +8,6 @@ import java.net.Socket;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
@@ -19,16 +18,18 @@ import ping.pong.net.connection.Envelope;
  *
  * @author mfullen
  */
-public class DefaultIoServerConnection<Message> implements
-        Connection
+public final class DefaultIoServerConnection<MessageType> implements
+        Connection<MessageType>
 {
     public static final Logger logger = LoggerFactory.getLogger(DefaultIoServerConnection.class);
     protected DatagramSocket udpSocket = null;
     protected Socket tcpSocket = null;
     protected ConnectionConfiguration config = null;
     protected boolean connected = false;
+    protected int connectionId = -1;
+    protected Server<Envelope<MessageType>> server = null;
     private final Object lock = new Object();
-    protected ConcurrentLinkedQueue<Message> queue = new ConcurrentLinkedQueue<Message>();
+    protected ConcurrentLinkedQueue<MessageType> queue = new ConcurrentLinkedQueue<MessageType>();
     private ExecutorService executorService = Executors.newFixedThreadPool(4);
     /**
      * The input stream that receives data from the other side of the connection
@@ -40,6 +41,8 @@ public class DefaultIoServerConnection<Message> implements
     protected ObjectOutputStream outputstream;
     private Runnable tcpReceive = new Runnable()
     {
+        boolean listening = true;
+
         @Override
         public void run()
         {
@@ -49,13 +52,14 @@ public class DefaultIoServerConnection<Message> implements
             }
             catch (IOException ex)
             {
-                logger.error("Input stream error fool", ex);
+                logger.error("{} Input stream error fool", getConnectionName(), ex);
             }
-            while (true)
+            while (listening)
             {
                 if (tcpSocket.isClosed() || !tcpSocket.isConnected())
                 {
-                    logger.trace("TCP Socket is closed or not Connected");
+                    logger.trace("{} TCP Socket is closed or not Connected. TCP Receive Thread shutting down", getConnectionName());
+                    this.listening = false;
                 }
                 else
                 {
@@ -64,12 +68,13 @@ public class DefaultIoServerConnection<Message> implements
                     try
                     {
                         //blocks here
+                        logger.trace("{} About to block for read Object", getConnectionName());
                         readObject = inputstream.readObject();
-                        logger.trace("Read Object from Stream: " + readObject);
+                        logger.trace("{} Read Object from Stream: {} ", getConnectionName(), readObject);
 
                         if (readObject != null)
                         {
-                            enqueueMessage((Message) readObject);
+                            enqueueMessage((MessageType) readObject);
                         }
                         else
                         {
@@ -88,13 +93,13 @@ public class DefaultIoServerConnection<Message> implements
                         }
                         finally
                         {
-                            logger.error("TCP Receive: ");
+                            logger.error("{} TCP Receive: ", getConnectionName());
                             ServerExceptionHandler.handleException(ex);
                         }
                     }
                     catch (ClassNotFoundException ex)
                     {
-                        logger.error("TCP Receive Class NotFound: ", ex);
+                        logger.error("{} TCP Receive Class NotFound: ", getConnectionName(), ex);
                     }
                 }
             }
@@ -129,21 +134,22 @@ public class DefaultIoServerConnection<Message> implements
     {
     }
 
-    public DefaultIoServerConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public DefaultIoServerConnection(Server<Envelope<MessageType>> server, ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
+        this.server = server;
         this.config = config;
         this.tcpSocket = tcpSocket;
         this.udpSocket = udpSocket;
     }
 
-    public void enqueueMessage(Message message)
+    public void enqueueMessage(MessageType message)
     {
         boolean added = this.queue.add(message);
         synchronized (this.lock)
         {
             this.lock.notifyAll();
         }
-        logger.trace("Message enqueued {}", added ? "Successfully." : "Failed.");
+        logger.trace("{} Message enqueued {}", this.getConnectionName(), added ? "Successfully." : "Failed.");
     }
 
     public synchronized ObjectOutputStream getOutputstream()
@@ -167,9 +173,14 @@ public class DefaultIoServerConnection<Message> implements
             }
             catch (IOException ex)
             {
-                logger.error("TCP input stream failed to close", ex);
+                logger.error("{} TCP input stream failed to close", this.getConnectionName(), ex);
             }
         }
+    }
+
+    private String getConnectionName()
+    {
+        return "Connection (" + this.getConnectionId() + "):";
     }
 
     @Override
@@ -179,21 +190,25 @@ public class DefaultIoServerConnection<Message> implements
     }
 
     @Override
-    public int getConnectionID()
+    public int getConnectionId()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.connectionId;
     }
 
     @Override
-    public Server<Message> getServer()
+    public void setConnectionId(int connectionId)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.connectionId = connectionId;
     }
 
     @Override
     public void run()
     {
         this.connected = true;
+
+        //send connection id
+        //sendthis.getConnectionId();
+
 
         //start read and write threads
         this.executorService.execute(tcpReceive);
@@ -203,29 +218,52 @@ public class DefaultIoServerConnection<Message> implements
         {
             while (!this.queue.isEmpty())
             {
-                logger.info("Processing Queue");
+                logger.info("{} Processing Queue", this.getConnectionName());
                 //todo fix this to actually process the messages to the listeners
-                Message poll = this.queue.poll();
-                logger.info(poll + "");
+                MessageType poll = this.queue.poll();
+                logger.info("{} {}", this.getConnectionName(), poll);
             }
 
             synchronized (this.lock)
             {
                 try
                 {
+                    logger.trace("{} Finished Processing going into waiting...", this.getConnectionName());
                     this.lock.wait();
                 }
                 catch (InterruptedException ex)
                 {
-                    logger.error("Lock failed: " + ex);
+                    logger.error("{} Lock failed: ", this.getConnectionName(), ex);
                 }
             }
         }
     }
 
     @Override
-    public void sendMessage(Envelope message)
+    public Server<Envelope<MessageType>> getServer()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.server;
+    }
+
+    @Override
+    public void sendMessage(Envelope<MessageType> message)
+    {
+        if (message.isReliable())
+        {
+            sendTcpMessage(message.getMessage());
+        }
+        else
+        {
+            sendUdpMessage(message.getMessage());
+        }
+    }
+
+    private void sendTcpMessage(MessageType message)
+    {
+    }
+
+    private void sendUdpMessage(MessageType message)
+    {
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 }
