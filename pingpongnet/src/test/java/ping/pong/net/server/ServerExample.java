@@ -1,9 +1,8 @@
 package ping.pong.net.server;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.net.UnknownHostException;
+import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.Envelope;
 
 /**
@@ -18,22 +17,27 @@ public class ServerExample
     {
         //Server<String> server = new DefaultIoServerConnection<String>(ConnectionFactory.createConnectionConfiguration(), new Socket("localhost", 5011), null);
         Server<Envelope<String>> server = new IoServerImpl<String>();
-        server.start();
-        {
-            Socket client = new Socket("localhost", 5011);
-            ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
-            outputStream.writeObject("hello world");
-            outputStream.close();
-        }
-        {
-            Socket client = new Socket("localhost", 5011);
-            ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
-            for (int i = 0; i < 5; i++)
+        server.addConnectionListener(new ServerConnectionListener() {
+
+            @Override
+            public void connectionAdded(Server server, Connection conn)
             {
-                outputStream.writeObject("hello world:" + i);
-                Thread.sleep(500);
+                System.out.println("Connection Added");
             }
 
-        }
+            @Override
+            public void connectionRemoved(Server server, Connection conn)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+        });
+
+//        server.start();
+//
+//        Thread.sleep(5000);
+//        server.shutdown();
+
+        // Thread.sleep(5000);
+        server.start();
     }
 }
