@@ -6,7 +6,9 @@ import ping.pong.net.server.Server;
  *
  * @author mfullen
  */
-public interface Connection<Message> extends MessageSender<Message>, Runnable
+public interface Connection<Message extends Envelope<Message>> extends
+        MessageSender<Message>,
+        Runnable
 {
     /**
      * Closes the connection

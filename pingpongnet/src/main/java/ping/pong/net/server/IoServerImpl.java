@@ -11,13 +11,14 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionFactory;
+import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 
 /**
  *
  * @author mfullen
  */
-public final class IoServerImpl<Message> implements Server<Message>
+public final class IoServerImpl<Message> implements Server<Envelope<Message>>
 {
     public static final Logger logger = LoggerFactory.getLogger(IoServerImpl.class);
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
@@ -37,7 +38,7 @@ public final class IoServerImpl<Message> implements Server<Message>
     }
 
     @Override
-    public void broadcast(Message message)
+    public void broadcast(Envelope<Message> message)
     {
         logger.info("Broadcasting Message: {}", message);
         for (Connection connection : this.connectionsMap.values())
@@ -56,6 +57,7 @@ public final class IoServerImpl<Message> implements Server<Message>
         }
         this.serverConnectionManager = new ServerConnectionManager(config);
         this.serverConnectionManager.start();
+        logger.info("Server started {} on port {}", config.getIpAddress(), config.getPort());
     }
 
     @Override
@@ -100,14 +102,14 @@ public final class IoServerImpl<Message> implements Server<Message>
     }
 
     @Override
-    public void addMessageListener(MessageListener<? super Connection, Message> listener)
+    public void addMessageListener(MessageListener<? super Connection, Envelope<Message>> listener)
     {
         boolean added = this.messageListeners.add(listener);
         logger.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
     }
 
     @Override
-    public void removeMessageListener(MessageListener<? super Connection, Message> listener)
+    public void removeMessageListener(MessageListener<? super Connection, Envelope<Message>> listener)
     {
         boolean removed = this.messageListeners.remove(listener);
         logger.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");

@@ -69,7 +69,10 @@ public class ServerExceptionHandler
             {
                 logger.error("End of client. Client must of disconnected", ex);
             }
-            logger.error("Unknown Error", ex);
+            else
+            {
+                logger.error("Unknown Error", ex);
+            }
         }
     }
 }

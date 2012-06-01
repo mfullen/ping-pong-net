@@ -10,9 +10,9 @@ import java.net.Socket;
  */
 public final class ConnectionFactory
 {
-    public static <Message> Connection<Message> createDefaultIOServerConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public static Connection<? extends Envelope> createDefaultIOServerConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
-        return new DefaultIoServerConnection<Message>(config, tcpSocket, udpSocket);
+        return new DefaultIoServerConnection(config, tcpSocket, udpSocket);
     }
 
     public static ConnectionConfiguration createConnectionConfiguration(String ip, int tcpPort, int udpPort, boolean ssl)

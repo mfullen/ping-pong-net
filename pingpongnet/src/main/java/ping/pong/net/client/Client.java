@@ -1,5 +1,6 @@
 package ping.pong.net.client;
 
+import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 import ping.pong.net.connection.MessageSender;
 
@@ -7,7 +8,8 @@ import ping.pong.net.connection.MessageSender;
  *
  * @author mfullen
  */
-public interface Client<Message> extends MessageSender<Message>
+public interface Client<Message extends Envelope<Message>> extends
+        MessageSender<Message>
 {
     void start();
 
