@@ -27,7 +27,7 @@ public final class DefaultIoServerConnection<MessageType> implements
     protected ConnectionConfiguration config = null;
     protected boolean connected = false;
     protected int connectionId = -1;
-    protected Server<Envelope<MessageType>> server = null;
+    protected IoServerImpl<MessageType> server = null;
     private final Object lock = new Object();
     protected ConcurrentLinkedQueue<MessageType> queue = new ConcurrentLinkedQueue<MessageType>();
     private ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -134,7 +134,7 @@ public final class DefaultIoServerConnection<MessageType> implements
     {
     }
 
-    public DefaultIoServerConnection(Server<Envelope<MessageType>> server, ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public DefaultIoServerConnection(IoServerImpl<MessageType> server, ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
         this.server = server;
         this.config = config;
@@ -176,6 +176,9 @@ public final class DefaultIoServerConnection<MessageType> implements
                 logger.error("{} TCP input stream failed to close", this.getConnectionName(), ex);
             }
         }
+
+        //remove the connection from the server
+        this.server.removeConnection(this);
     }
 
     private String getConnectionName()
@@ -237,6 +240,8 @@ public final class DefaultIoServerConnection<MessageType> implements
                 }
             }
         }
+        //Connection is done, try to properly close and cleanup
+        this.close();
     }
 
     @Override

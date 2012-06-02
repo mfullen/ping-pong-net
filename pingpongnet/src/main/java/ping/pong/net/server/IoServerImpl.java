@@ -138,17 +138,53 @@ public final class IoServerImpl<MessageType> implements
         return this.serverConnectionManager == null ? false : true;
     }
 
+    /**
+     *
+     * @param connection
+     */
     synchronized void addConnection(Connection<MessageType> connection)
     {
         int id = this.getNextAvailableId();
         connection.setConnectionId(id);
-        
-        this.connectionsMap.put(id, connection);
 
+        this.connectionsMap.put(id, connection);
+        logger.trace("Adding Connection ({}) to connectionmap ", id);
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {
             serverConnectionListener.connectionAdded(this, connection);
         }
+    }
+
+    /**
+     *
+     * @param connection
+     */
+    synchronized void removeConnection(Connection<MessageType> connection)
+    {
+        if (connection == null)
+        {
+            logger.warn("Cannot remove null connection");
+            return;
+        }
+
+        int connectionId = connection.getConnectionId();
+        this.connectionsMap.remove(connectionId);
+        logger.trace("Removing Connection ({}) to connectionmap ", connectionId);
+        
+        for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
+        {
+            serverConnectionListener.connectionRemoved(this, connection);
+        }
+    }
+
+    /**
+     *
+     * @param id
+     */
+    synchronized void removeConnection(int id)
+    {
+        Connection connection = this.connectionsMap.get(id);
+        this.removeConnection(connection);
     }
 
     @Override
