@@ -1,4 +1,4 @@
-package ping.pong.net.server;
+package ping.pong.net.server.io;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +13,8 @@ import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionFactory;
 import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
+import ping.pong.net.server.Server;
+import ping.pong.net.server.ServerConnectionListener;
 
 /**
  *
@@ -170,7 +172,7 @@ public final class IoServerImpl<MessageType> implements
         int connectionId = connection.getConnectionId();
         this.connectionsMap.remove(connectionId);
         logger.trace("Removing Connection ({}) to connectionmap ", connectionId);
-        
+
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {
             serverConnectionListener.connectionRemoved(this, connection);

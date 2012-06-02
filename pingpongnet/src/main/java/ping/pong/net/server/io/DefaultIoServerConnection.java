@@ -1,4 +1,4 @@
-package ping.pong.net.server;
+package ping.pong.net.server.io;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.Envelope;
+import ping.pong.net.server.Server;
+import ping.pong.net.server.ServerExceptionHandler;
 
 /**
  *
