@@ -4,6 +4,7 @@ import ping.pong.net.server.io.IoServerImpl;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.Envelope;
 
 /**
  *
@@ -24,6 +25,20 @@ public class ServerExample
             public void connectionAdded(Server server, Connection conn)
             {
                 System.out.println("Connection Added");
+                server.broadcast(new Envelope<String>()
+                {
+                    @Override
+                    public boolean isReliable()
+                    {
+                        return true;
+                    }
+
+                    @Override
+                    public String getMessage()
+                    {
+                        return "Test";
+                    }
+                });
             }
 
             @Override
@@ -40,5 +55,6 @@ public class ServerExample
 
         // Thread.sleep(5000);
         server.start();
+
     }
 }

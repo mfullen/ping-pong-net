@@ -20,7 +20,7 @@ import ping.pong.net.server.ServerExceptionHandler;
  *
  * @author mfullen
  */
-public final class DefaultIoServerConnection<MessageType> implements
+final class DefaultIoServerConnection<MessageType> implements
         Connection<MessageType>
 {
     public static final Logger logger = LoggerFactory.getLogger(DefaultIoServerConnection.class);
@@ -31,7 +31,10 @@ public final class DefaultIoServerConnection<MessageType> implements
     protected int connectionId = -1;
     protected IoServerImpl<MessageType> server = null;
     private final Object lock = new Object();
-    protected ConcurrentLinkedQueue<MessageType> queue = new ConcurrentLinkedQueue<MessageType>();
+    private final Object tcpWriteLock = new Object();
+    protected ConcurrentLinkedQueue<MessageType> readQueue = new ConcurrentLinkedQueue<MessageType>();
+    protected ConcurrentLinkedQueue<MessageType> tcpWriteQueue = new ConcurrentLinkedQueue<MessageType>();
+    protected ConcurrentLinkedQueue<MessageType> udpWriteQueue = new ConcurrentLinkedQueue<MessageType>();
     private ExecutorService executorService = Executors.newFixedThreadPool(4);
     /**
      * The input stream that receives data from the other side of the connection
@@ -41,6 +44,9 @@ public final class DefaultIoServerConnection<MessageType> implements
      * The output stream that writes data to the other side of the connection
      */
     protected ObjectOutputStream outputstream;
+    /**
+     *
+     */
     private Runnable tcpReceive = new Runnable()
     {
         boolean listening = true;
@@ -54,7 +60,7 @@ public final class DefaultIoServerConnection<MessageType> implements
             }
             catch (IOException ex)
             {
-                logger.error("{} Input stream error fool", getConnectionName(), ex);
+                logger.error("{} Input stream initialization error", getConnectionName(), ex);
             }
             while (listening)
             {
@@ -85,13 +91,14 @@ public final class DefaultIoServerConnection<MessageType> implements
                     }
                     catch (IOException ex)
                     {
-
                         try
                         {
                             tcpSocket.close();
                         }
                         catch (IOException ex1)
                         {
+                            logger.error("{} TCP Receive Socket closed error: ", getConnectionName());
+                            ServerExceptionHandler.handleException(ex);
                         }
                         finally
                         {
@@ -109,10 +116,85 @@ public final class DefaultIoServerConnection<MessageType> implements
     };
     private Runnable tcpWrite = new Runnable()
     {
+        boolean listening = false;
+
+        public boolean isListening()
+        {
+            return listening;
+        }
+
         @Override
         public void run()
         {
-            throw new UnsupportedOperationException("Not supported yet.");
+            try
+            {
+                outputstream = new ObjectOutputStream(tcpSocket.getOutputStream());
+                outputstream.flush();
+            }
+            catch (IOException ex)
+            {
+                logger.error("{} Output stream initialization error", getConnectionName(), ex);
+            }
+
+            try
+            {
+                outputstream.writeInt(getConnectionId());
+                logger.trace("{} Sending Client/Connection Id {}", getConnectionName(), getConnectionId());
+            }
+            catch (IOException ex)
+            {
+                logger.error("{} Error Sending Client/Connection Id {}", getConnectionName(), getConnectionId());
+            }
+
+            this.listening = true;
+
+            listeningLabel:
+            while (this.listening)
+            {
+                if (tcpSocket.isClosed() || !tcpSocket.isConnected())
+                {
+                    logger.trace("{} TCP Socket is closed or not Connected. TCP Write Thread shutting down", getConnectionName());
+                    this.listening = false;
+                    break listeningLabel;
+                }
+                while (!tcpWriteQueue.isEmpty())
+                {
+                    //send through the socket
+                    MessageType message = tcpWriteQueue.poll();
+                    try
+                    {
+                        outputstream.writeObject(message);
+                        logger.trace("{} Output wrote object: {} ", getConnectionName(), message);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.error("{} Output Stream WriteObject error: {} ", getConnectionName(), e);
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            outputstream.flush();
+                        }
+                        catch (IOException ex)
+                        {
+                            logger.error("{} Output Stream Flush error: {} ", getConnectionName());
+                        }
+                    }
+                }
+                synchronized (tcpWriteLock)
+                {
+                    try
+                    {
+                        logger.trace("{} Tcp Write going into waiting", getConnectionName());
+                        tcpWriteLock.wait();
+                    }
+                    catch (InterruptedException ex)
+                    {
+                        logger.error("{} WriteLock failed: ", getConnectionName(), ex);
+                    }
+                }
+            }
         }
     };
     private Runnable udpReceive = new Runnable()
@@ -146,22 +228,12 @@ public final class DefaultIoServerConnection<MessageType> implements
 
     public void enqueueMessage(MessageType message)
     {
-        boolean added = this.queue.add(message);
+        boolean added = this.readQueue.add(message);
         synchronized (this.lock)
         {
             this.lock.notifyAll();
         }
         logger.trace("{} Message enqueued {}", this.getConnectionName(), added ? "Successfully." : "Failed.");
-    }
-
-    public synchronized ObjectOutputStream getOutputstream()
-    {
-        return outputstream;
-    }
-
-    public synchronized ObjectInputStream getInputstream()
-    {
-        return inputstream;
     }
 
     @Override
@@ -176,6 +248,18 @@ public final class DefaultIoServerConnection<MessageType> implements
             catch (IOException ex)
             {
                 logger.error("{} TCP input stream failed to close", this.getConnectionName(), ex);
+            }
+        }
+
+        if (this.outputstream != null)
+        {
+            try
+            {
+                this.outputstream.close();
+            }
+            catch (IOException ex)
+            {
+                logger.error("{} TCP Output stream failed to close", this.getConnectionName(), ex);
             }
         }
 
@@ -211,21 +295,18 @@ public final class DefaultIoServerConnection<MessageType> implements
     {
         this.connected = true;
 
-        //send connection id
-        //sendthis.getConnectionId();
-
-
         //start read and write threads
+        this.executorService.execute(tcpWrite);
         this.executorService.execute(tcpReceive);
 
 
         while (connected)
         {
-            while (!this.queue.isEmpty())
+            while (!this.readQueue.isEmpty())
             {
                 logger.info("{} Processing Queue", this.getConnectionName());
                 //todo fix this to actually process the messages to the listeners
-                MessageType poll = this.queue.poll();
+                MessageType poll = this.readQueue.poll();
                 logger.info("{} {}", this.getConnectionName(), poll);
             }
 
@@ -255,18 +336,26 @@ public final class DefaultIoServerConnection<MessageType> implements
     @Override
     public void sendMessage(Envelope<MessageType> message)
     {
+        MessageType msg = message.getMessage();
+
         if (message.isReliable())
         {
-            sendTcpMessage(message.getMessage());
+            sendTcpMessage(msg);
         }
         else
         {
-            sendUdpMessage(message.getMessage());
+            sendUdpMessage(msg);
         }
     }
 
     private void sendTcpMessage(MessageType message)
     {
+        synchronized (tcpWriteLock)
+        {
+            boolean added = tcpWriteQueue.add(message);
+            logger.trace("{} Message {} to the write queue", this.getConnectionName(), added ? "successfully added" : "failed to add");
+            tcpWriteLock.notifyAll();
+        }
     }
 
     private void sendUdpMessage(MessageType message)

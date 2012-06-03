@@ -26,7 +26,7 @@ public final class IoServerImpl<MessageType> implements
     public static final Logger logger = LoggerFactory.getLogger(IoServerImpl.class);
     private static final String CANT_ADD_LISTENER = "You must add Listeners before the server is started";
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
-    private ServerConnectionManager<MessageType> serverConnectionManager = null;
+    protected ServerConnectionManager<MessageType> serverConnectionManager = null;
     protected ConnectionConfiguration config = null;
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
     protected List<ServerConnectionListener> connectionListeners = new ArrayList<ServerConnectionListener>();
@@ -44,10 +44,10 @@ public final class IoServerImpl<MessageType> implements
     @Override
     public void broadcast(Envelope<MessageType> message)
     {
-        logger.info("Broadcasting Message: {}", message);
         for (Connection connection : this.connectionsMap.values())
         {
             connection.sendMessage(message);
+            logger.trace("Broadcasting Message: {} to Connection ({})", message, connection.getConnectionId());
         }
     }
 
@@ -110,34 +110,45 @@ public final class IoServerImpl<MessageType> implements
     @Override
     public void addMessageListener(MessageListener<? super Connection, Envelope<MessageType>> listener)
     {
-        boolean added = this.messageListeners.add(listener);
+        boolean added = false;
+        if (listener != null)
+        {
+            added = this.messageListeners.add(listener);
+        }
         logger.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
     }
 
     @Override
     public void removeMessageListener(MessageListener<? super Connection, Envelope<MessageType>> listener)
     {
-        boolean removed = this.messageListeners.remove(listener);
+        boolean removed = false;
+        if (listener != null)
+        {
+            removed = this.messageListeners.remove(listener);
+        }
         logger.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");
     }
 
     @Override
     public void addConnectionListener(ServerConnectionListener connectionListener)
     {
-        boolean added = this.connectionListeners.add(connectionListener);
+        boolean added = false;
+        if (connectionListener != null)
+        {
+            added = this.connectionListeners.add(connectionListener);
+        }
         logger.trace("Add Connection Listener: {}", added ? "Successful" : "Failure");
     }
 
     @Override
     public void removeConnectionListener(ServerConnectionListener connectionListener)
     {
-        boolean removed = this.connectionListeners.remove(connectionListener);
+        boolean removed = false;
+        if (connectionListener != null)
+        {
+            removed = this.connectionListeners.remove(connectionListener);
+        }
         logger.trace("Remove Connection Listener: {}", removed ? "Successful" : "Failure");
-    }
-
-    private boolean hasConnectionManager()
-    {
-        return this.serverConnectionManager == null ? false : true;
     }
 
     /**
@@ -194,13 +205,12 @@ public final class IoServerImpl<MessageType> implements
     {
         int id = 1;
 
-        boolean needsId = true;
-        while (needsId)
+        idLabel:
+        while (true)
         {
             if (!this.connectionsMap.containsKey(id))
             {
-                needsId = false;
-                return id;
+                break idLabel;
             }
             id++;
         }

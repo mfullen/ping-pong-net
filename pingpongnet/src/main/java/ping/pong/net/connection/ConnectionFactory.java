@@ -1,9 +1,5 @@
 package ping.pong.net.connection;
 
-import ping.pong.net.server.io.DefaultIoServerConnection;
-import java.net.DatagramSocket;
-import java.net.Socket;
-
 /**
  *
  * @author mfullen

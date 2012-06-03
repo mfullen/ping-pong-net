@@ -20,10 +20,10 @@ import ping.pong.net.server.ServerExceptionHandler;
  *
  * @author mfullen
  */
-class ServerConnectionManager<MessageType> implements Runnable
+final class ServerConnectionManager<MessageType> implements Runnable
 {
     public static final Logger logger = LoggerFactory.getLogger(ServerConnectionManager.class);
-    private boolean listening = true;
+    protected  boolean listening = true;
     protected ConnectionConfiguration configuration;
     protected ServerSocket tcpServerSocket = null;
     protected DatagramSocket udpServerSocket = null;
@@ -56,15 +56,30 @@ class ServerConnectionManager<MessageType> implements Runnable
         this.listening = false;
         this.configuration = null;
 
-        try
+        if (tcpServerSocket != null)
         {
-            tcpServerSocket.close();
+            try
+            {
+                tcpServerSocket.close();
+            }
+            catch (IOException ex)
+            {
+                logger.error("Error Closing TCP socket");
+            }
         }
-        catch (IOException ex)
+        else
         {
-            logger.error("Error Closing TCP socket");
+            logger.warn("TCP Socket is null");
         }
-        udpServerSocket.close();
+        if (udpServerSocket != null)
+        {
+            udpServerSocket.close();
+        }
+        else
+        {
+            logger.warn("UDP Socket is null");
+        }
+
         this.tcpServerSocket = null;
         this.udpServerSocket = null;
         this.executorService = null;
@@ -120,8 +135,8 @@ class ServerConnectionManager<MessageType> implements Runnable
                 if (acceptingSocket != null)
                 {
                     Connection<MessageType> createDefaultIOServerConnection = new DefaultIoServerConnection<MessageType>(this.server, configuration, acceptingSocket, udpServerSocket);
-                    this.server.addConnection(createDefaultIOServerConnection);
                     executorService.execute(createDefaultIOServerConnection);
+                    this.server.addConnection(createDefaultIOServerConnection);
                     logger.info("Connection {} started...", createDefaultIOServerConnection.getConnectionId());
                 }
             }
