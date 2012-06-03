@@ -12,6 +12,7 @@ import java.net.PortUnreachableException;
 import java.net.SocketException;
 
 import java.util.logging.Level;
+import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +59,12 @@ public class ServerExceptionHandler
             }
             else
             {
-                logger.error("Unknown Error", ex);
+                logger.error("Unknown SocketException Error", ex);
             }
+        }
+        else if (ex instanceof SSLException)
+        {
+            logger.error("SSL Error: ", ex);
         }
         else
         {

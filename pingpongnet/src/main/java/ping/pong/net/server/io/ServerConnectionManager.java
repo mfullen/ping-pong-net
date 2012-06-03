@@ -23,12 +23,12 @@ import ping.pong.net.server.ServerExceptionHandler;
 final class ServerConnectionManager<MessageType> implements Runnable
 {
     public static final Logger logger = LoggerFactory.getLogger(ServerConnectionManager.class);
-    protected  boolean listening = true;
+    protected boolean listening = true;
     protected ConnectionConfiguration configuration;
     protected ServerSocket tcpServerSocket = null;
     protected DatagramSocket udpServerSocket = null;
     protected IoServerImpl<MessageType> server = null;
-    private ExecutorService executorService = Executors.newFixedThreadPool(2);
+    protected ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     public ServerConnectionManager(ConnectionConfiguration configuration, IoServerImpl<MessageType> server)
     {
@@ -56,21 +56,22 @@ final class ServerConnectionManager<MessageType> implements Runnable
         this.listening = false;
         this.configuration = null;
 
-        if (tcpServerSocket != null)
+        try
         {
-            try
+            if (tcpServerSocket != null)
             {
                 tcpServerSocket.close();
             }
-            catch (IOException ex)
+            else
             {
-                logger.error("Error Closing TCP socket");
+                logger.warn("TCP Socket is null");
             }
         }
-        else
+        catch (IOException ex)
         {
-            logger.warn("TCP Socket is null");
+            logger.error("Error Closing TCP socket");
         }
+
         if (udpServerSocket != null)
         {
             udpServerSocket.close();
@@ -109,6 +110,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
             catch (IOException ex)
             {
                 logger.error("Error creating TCP server socket. " + ex);
+                listening = false;
             }
             try
             {
@@ -117,6 +119,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
             catch (Exception e)
             {
                 logger.error("Error creating UDP server socket. " + e);
+                listening = false;
             }
 
             while (listening)
@@ -125,12 +128,12 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 Socket acceptingSocket = null;
                 try
                 {
-
                     acceptingSocket = tcpServerSocket.accept();
                 }
                 catch (IOException ex)
                 {
                     ServerExceptionHandler.handleException(ex);
+                    this.shutdown();
                 }
                 if (acceptingSocket != null)
                 {
