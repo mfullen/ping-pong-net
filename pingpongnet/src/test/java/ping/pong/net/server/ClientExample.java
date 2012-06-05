@@ -148,45 +148,90 @@ public class ClientExample
                     });
             outputStream.flush();
             outputStream.close();
+
+            client.close();
         }
     }
 
-    public static void regularConnections() throws IOException,
-                                                   InterruptedException,
-                                                   NoSuchAlgorithmException,
-                                                   KeyManagementException,
-                                                   KeyStoreException,
-                                                   UnrecoverableKeyException,
-                                                   CertificateException,
-                                                   URISyntaxException
+    public static void SSLFollowedByRegularConnection() throws IOException,
+                                                               InterruptedException,
+                                                               NoSuchAlgorithmException,
+                                                               KeyManagementException,
+                                                               KeyStoreException,
+                                                               UnrecoverableKeyException,
+                                                               CertificateException,
+                                                               URISyntaxException
     {
+        ssl2();
+        regularConnectionByteArrayStaysOpen();
+    }
+
+    public static void regularConnectionByteArray() throws IOException,
+                                                           InterruptedException,
+                                                           NoSuchAlgorithmException,
+                                                           KeyManagementException,
+                                                           KeyStoreException,
+                                                           UnrecoverableKeyException,
+                                                           CertificateException,
+                                                           URISyntaxException
+    {
+        Socket client = new Socket("localhost", 5011);
+        ObjectInputStream inputStream = new ObjectInputStream(client.getInputStream());
+        int readInt = inputStream.readInt();
+        System.out.println("I was assigned Client id: " + readInt);
+        ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
+        outputStream.writeObject(new byte[]
+                {
+                    1, 3, 2, 3
+                });
+        outputStream.flush();
+        outputStream.close();
+    }
+
+    public static void regularConnectionByteArrayStaysOpen() throws IOException,
+                                                                    InterruptedException,
+                                                                    NoSuchAlgorithmException,
+                                                                    KeyManagementException,
+                                                                    KeyStoreException,
+                                                                    UnrecoverableKeyException,
+                                                                    CertificateException,
+                                                                    URISyntaxException
+    {
+        Socket client = new Socket("localhost", 5011);
+        ObjectInputStream inputStream = new ObjectInputStream(client.getInputStream());
+        int readInt = inputStream.readInt();
+        System.out.println("I was assigned Client id: " + readInt);
+        ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
+        outputStream.writeObject(new byte[]
+                {
+                    1, 3, 2, 3
+                });
+        outputStream.flush();
+    }
+
+    public static void regularConnectionsHelloworld() throws IOException,
+                                                             InterruptedException,
+                                                             NoSuchAlgorithmException,
+                                                             KeyManagementException,
+                                                             KeyStoreException,
+                                                             UnrecoverableKeyException,
+                                                             CertificateException,
+                                                             URISyntaxException
+    {
+
+        Socket client = new Socket("localhost", 5011);
+        ObjectInputStream inputStream = new ObjectInputStream(client.getInputStream());
+        int readInt = inputStream.readInt();
+        System.out.println("I was assigned Client id: " + readInt);
+        ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
+        for (int i = 0; i < 5; i++)
         {
-            Socket client = new Socket("localhost", 5011);
-            ObjectInputStream inputStream = new ObjectInputStream(client.getInputStream());
-            int readInt = inputStream.readInt();
-            System.out.println("I was assigned Client id: " + readInt);
-            ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
-            outputStream.writeObject(new byte[]
-                    {
-                        1, 3, 2, 3
-                    });
-            outputStream.flush();
-            outputStream.close();
+            outputStream.writeObject("hello world:" + i);
+            Thread.sleep(500);
         }
-        {
-            Socket client = new Socket("localhost", 5011);
-            ObjectInputStream inputStream = new ObjectInputStream(client.getInputStream());
-            int readInt = inputStream.readInt();
-            System.out.println("I was assigned Client id: " + readInt);
-            ObjectOutputStream outputStream = new ObjectOutputStream(client.getOutputStream());
-            for (int i = 0; i < 5; i++)
-            {
-                outputStream.writeObject("hello world:" + i);
-                Thread.sleep(500);
-            }
-            outputStream.flush();
-            outputStream.close();
-        }
+        outputStream.flush();
+        outputStream.close();
+
     }
 
     public static void main(String[] args) throws IOException,
@@ -198,7 +243,7 @@ public class ClientExample
                                                   CertificateException,
                                                   URISyntaxException
     {
-        ssl2();
+        SSLFollowedByRegularConnection();
 
         while (true)
         {

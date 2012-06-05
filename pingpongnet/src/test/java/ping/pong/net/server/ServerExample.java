@@ -46,7 +46,7 @@ public class ServerExample
             @Override
             public void connectionRemoved(Server server, Connection conn)
             {
-                throw new UnsupportedOperationException("Not supported yet.");
+                System.out.println("Connection removed was " + conn.getConnectionId());
             }
         });
 

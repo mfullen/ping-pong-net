@@ -51,7 +51,7 @@ class DefaultConnectionConfiguration implements ConnectionConfiguration
 
     DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl)
     {
-        this(port, udpPort, ipAddress, ssl, findKeyStorePath(null), DEFAULT_KEY_STORE_PASSWORD);
+        this(port, udpPort, ipAddress, ssl, ssl ? findKeyStorePath(null) : null, DEFAULT_KEY_STORE_PASSWORD);
     }
 
     DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl, String keystorePath, String keystorePassword)

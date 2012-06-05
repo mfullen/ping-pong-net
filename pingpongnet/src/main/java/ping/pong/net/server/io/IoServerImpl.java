@@ -160,8 +160,10 @@ public final class IoServerImpl<MessageType> implements
         int id = this.getNextAvailableId();
         connection.setConnectionId(id);
 
+        logger.trace("Current Connections: {}", this.getConnections());
         this.connectionsMap.put(id, connection);
         logger.trace("Adding Connection ({}) to connectionmap ", id);
+        logger.trace("Current Connections: {}", this.getConnections());
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {
             serverConnectionListener.connectionAdded(this, connection);
@@ -180,9 +182,11 @@ public final class IoServerImpl<MessageType> implements
             return;
         }
 
+        logger.trace("Current Connections: {}", this.getConnections());
         int connectionId = connection.getConnectionId();
         this.connectionsMap.remove(connectionId);
         logger.trace("Removing Connection ({}) to connectionmap ", connectionId);
+        logger.trace("Current Connections: {}", this.getConnections());
 
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {
