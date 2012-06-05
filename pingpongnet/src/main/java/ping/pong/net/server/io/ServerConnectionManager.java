@@ -148,7 +148,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 if (acceptingSocket != null)
                 {
-                    Connection<MessageType> createDefaultIOServerConnection = new DefaultIoServerConnection<MessageType>(this.server, configuration, acceptingSocket, udpServerSocket);
+                    Connection<MessageType> createDefaultIOServerConnection = new IoServerConnectionImpl<MessageType>(this.server, configuration, acceptingSocket, udpServerSocket);
                     executorService.execute(createDefaultIOServerConnection);
                     this.server.addConnection(createDefaultIOServerConnection);
                     logger.info("Connection {} started...", createDefaultIOServerConnection.getConnectionId());

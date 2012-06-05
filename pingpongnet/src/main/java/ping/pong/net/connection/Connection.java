@@ -31,10 +31,4 @@ public interface Connection<Message> extends
      * Set the connection Id
      */
     void setConnectionId(int id);
-
-    /**
-     * Gets the server that is hosting the connection
-     * @return
-     */
-    Server<Envelope<Message>> getServer();
 }

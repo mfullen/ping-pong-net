@@ -61,12 +61,6 @@ public class IoServerImplTest
         }
 
         @Override
-        public Server getServer()
-        {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
         public void sendMessage(Envelope<String> message)
         {
             assertTrue(message.isReliable());

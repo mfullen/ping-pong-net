@@ -14,17 +14,16 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.Envelope;
-import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerExceptionHandler;
 
 /**
  *
  * @author mfullen
  */
-final class DefaultIoServerConnection<MessageType> implements
+final class IoServerConnectionImpl<MessageType> implements
         Connection<MessageType>
 {
-    public static final Logger logger = LoggerFactory.getLogger(DefaultIoServerConnection.class);
+    public static final Logger logger = LoggerFactory.getLogger(IoServerConnectionImpl.class);
     protected DatagramSocket udpSocket = null;
     protected Socket tcpSocket = null;
     protected ConnectionConfiguration config = null;
@@ -227,11 +226,11 @@ final class DefaultIoServerConnection<MessageType> implements
         }
     };
 
-    private DefaultIoServerConnection()
+    private IoServerConnectionImpl()
     {
     }
 
-    public DefaultIoServerConnection(IoServerImpl<MessageType> server, ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public IoServerConnectionImpl(IoServerImpl<MessageType> server, ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
         this.server = server;
         this.config = config;
@@ -379,12 +378,6 @@ final class DefaultIoServerConnection<MessageType> implements
         //Connection is done, try to properly close and cleanup
         logger.info("{} Main thread calling close", getConnectionName());
         this.close();
-    }
-
-    @Override
-    public Server<Envelope<MessageType>> getServer()
-    {
-        return this.server;
     }
 
     @Override
