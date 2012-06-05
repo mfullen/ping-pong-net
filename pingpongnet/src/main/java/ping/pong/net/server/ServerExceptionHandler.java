@@ -65,16 +65,13 @@ public class ServerExceptionHandler
         {
             logger.error("SSL Error: ", ex);
         }
+        else if (ex instanceof EOFException)
+        {
+            logger.error("End of client. Client must of disconnected", ex);
+        }
         else
         {
-            if (ex instanceof EOFException)
-            {
-                logger.error("End of client. Client must of disconnected", ex);
-            }
-            else
-            {
-                logger.error("Unknown Error", ex);
-            }
+            logger.error("Unknown Error", ex);
         }
     }
 }
