@@ -1,8 +1,8 @@
 package ping.pong.net.server.io;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
@@ -100,12 +101,19 @@ final class ServerConnectionManager<MessageType> implements Runnable
     {
         try
         {
+            if (configuration.isSsl())
+            {
+                System.setProperty("javax.net.ssl.keyStore", configuration.getKeystorePath());
+                System.setProperty("javax.net.ssl.keyStorePassword", configuration.getKeystorePassword());
+            }
+
             ServerSocketFactory socketFactory = configuration.isSsl() ? SSLServerSocketFactory.getDefault() : ServerSocketFactory.getDefault();
+
             try
             {
-                tcpServerSocket = socketFactory.createServerSocket();
+                tcpServerSocket = socketFactory.createServerSocket(configuration.getPort());
                 tcpServerSocket.setReuseAddress(true);
-                tcpServerSocket.bind(new InetSocketAddress(configuration.getPort()));
+                // tcpServerSocket.bind(new InetSocketAddress(configuration.getPort()));
             }
             catch (IOException ex)
             {
@@ -132,7 +140,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 catch (IOException ex)
                 {
-                    ServerExceptionHandler.handleException(ex);
+                    ServerExceptionHandler.handleException(ex, logger);
                     this.shutdown();
                 }
                 if (acceptingSocket != null)
@@ -146,7 +154,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
         }
         catch (Exception exception)
         {
-            ServerExceptionHandler.handleException(exception);
+            ServerExceptionHandler.handleException(exception, logger);
         }
         finally
         {

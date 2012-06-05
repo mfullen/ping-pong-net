@@ -11,7 +11,6 @@ import java.net.NoRouteToHostException;
 import java.net.PortUnreachableException;
 import java.net.SocketException;
 
-import java.util.logging.Level;
 import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,7 @@ public class ServerExceptionHandler
      *
      * @param ex
      */
-    public static void handleException(final Exception ex)
+    public static void handleException(final Exception ex, Logger logger)
     {
         //    BindException, ConnectException, NoRouteToHostException, PortUnreachableException
         if (ex instanceof SocketException)

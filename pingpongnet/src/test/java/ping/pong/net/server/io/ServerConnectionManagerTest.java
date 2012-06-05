@@ -1,13 +1,24 @@
 package ping.pong.net.server.io;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.SSLSocket;
 import java.net.DatagramSocket;
 import java.io.IOException;
 import java.net.Socket;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionFactory;
@@ -74,14 +85,15 @@ public class ServerConnectionManagerTest
     }
 
     @Test
-    @Ignore
     public void testRunSSL()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 5011, 5012, true);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 4011, 4012, true);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServerImpl(createConnectionConfiguration));
-        instance.run();
+        Thread th = new Thread(instance);
+        th.start();
+        assertTrue(instance.isListening());
         instance.shutdown();
-        fail("Need to add SSL Certificates");
+        assertFalse(instance.isListening());
     }
 
     @Test
@@ -107,7 +119,7 @@ public class ServerConnectionManagerTest
 
         synchronized (this)
         {
-            wait(500);
+            wait(100);
         }
         Socket client = SocketFactory.getDefault().createSocket("localhost", 6011);
 
@@ -118,11 +130,15 @@ public class ServerConnectionManagerTest
     }
 
     @Test
-    @Ignore //need SSL certs
     public void testRunAcceptedSocketSSL() throws IOException,
-                                                  InterruptedException
+                                                  InterruptedException,
+                                                  URISyntaxException,
+                                                  NoSuchAlgorithmException,
+                                                  KeyStoreException,
+                                                  CertificateException,
+                                                  KeyManagementException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 6011, 6012, true);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 8011, 8012, true);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServerImpl(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();
@@ -131,7 +147,18 @@ public class ServerConnectionManagerTest
         {
             wait(500);
         }
-        Socket client = SocketFactory.getDefault().createSocket("localhost", 6011);
+
+        KeyStore ks = KeyStore.getInstance("JKS");
+        String absolutePath = new File(Thread.currentThread().getContextClassLoader().getResource(ConnectionConfiguration.DEFAULT_KEY_STORE).toURI()).getAbsolutePath();
+        ks.load(new FileInputStream(absolutePath), (ConnectionConfiguration.DEFAULT_KEY_STORE_PASSWORD).toCharArray());
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+        tmf.init(ks);
+        SSLContext sslcontext = SSLContext.getInstance("SSLv3");
+        sslcontext.init(null, tmf.getTrustManagers(), null);
+
+        SSLSocketFactory factory = (SSLSocketFactory) sslcontext.getSocketFactory();
+        SSLSocket client = (SSLSocket) factory.createSocket("localhost", 8011);
+        client.startHandshake();
 
         th.join(1500);
         assertTrue(instance.isListening());

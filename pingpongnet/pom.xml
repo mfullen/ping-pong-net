@@ -77,5 +77,34 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>gen-keystore</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>keytool-maven-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>genkey</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <keystore>src/main/resources/key</keystore>
+                            <dname>cn=https://github.com/mfullen/ping-pong-net, ou=None, L=Melbourne, ST=Florida, o=pingpongnet, c=US</dname>
+                            <keypass>pingpong123</keypass>
+                            <storepass>pingpong123</storepass>
+                            <validity>999999</validity>
+                            <alias>pingpongdefault</alias>
+
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
     </profiles>
 </project>

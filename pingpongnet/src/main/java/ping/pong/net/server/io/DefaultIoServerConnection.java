@@ -98,12 +98,12 @@ final class DefaultIoServerConnection<MessageType> implements
                         catch (IOException ex1)
                         {
                             logger.error("{} TCP Receive Socket closed error: ", getConnectionName());
-                            ServerExceptionHandler.handleException(ex);
+                            ServerExceptionHandler.handleException(ex, logger);
                         }
                         finally
                         {
                             logger.error("{} TCP Receive: ", getConnectionName());
-                            ServerExceptionHandler.handleException(ex);
+                            ServerExceptionHandler.handleException(ex, logger);
                         }
                     }
                     catch (ClassNotFoundException ex)

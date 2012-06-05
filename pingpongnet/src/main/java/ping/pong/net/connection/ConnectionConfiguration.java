@@ -7,6 +7,15 @@ package ping.pong.net.connection;
 public interface ConnectionConfiguration
 {
     /**
+     * Default Keystore name for a key on the classpath
+     */
+    public static final String DEFAULT_KEY_STORE = "key.ks";
+    /**
+     * Default password for the keystore
+     */
+    public static final String DEFAULT_KEY_STORE_PASSWORD = "pingpong123";
+
+    /**
      * Get the port the TCP connection uses
      * @return
      */
@@ -53,4 +62,30 @@ public interface ConnectionConfiguration
      * @param sslEnabled
      */
     void setSsl(boolean sslEnabled);
+
+    /**
+     * Gets the path of the currently set Keystore. If a custom keystore isn't set
+     * a default keystore is used. It is highly recommended you provide a keystore
+     * @return
+     */
+    String getKeystorePath();
+
+    /**
+     * Sets the path of the Keystore. If a custom keystore isn't set
+     * a default keystore is used. It is highly recommended you provide a keystore
+     * @param keystore
+     */
+    void setKeystorePath(String keystore);
+
+    /**
+     * Gets the password for the keystore
+     * @return
+     */
+    String getKeystorePassword();
+
+    /**
+     * Sets the password to use on the keystore
+     * @param password
+     */
+    void setKeystorePassword(String password);
 }

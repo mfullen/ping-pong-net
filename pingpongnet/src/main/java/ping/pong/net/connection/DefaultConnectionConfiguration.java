@@ -1,11 +1,49 @@
 package ping.pong.net.connection;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  *
  * @author mfullen
  */
 class DefaultConnectionConfiguration implements ConnectionConfiguration
 {
+    public static final Logger logger = LoggerFactory.getLogger(DefaultConnectionConfiguration.class);
+
+    public static String findKeyStorePath(String filepath)
+    {
+        if (filepath == null)
+        {
+            return getKeystoreFromClassPath();
+        }
+
+        File file = new File(filepath);
+        if (file.exists())
+        {
+            return file.getAbsolutePath();
+        }
+
+        return getKeystoreFromClassPath();
+    }
+
+    private static String getKeystoreFromClassPath()
+    {
+        String path = null;
+        try
+        {
+            path = new File(Thread.currentThread().getContextClassLoader().getResource(DEFAULT_KEY_STORE).toURI()).getAbsolutePath();
+            logger.trace("Couldn't find specified keystore, reverting to default {}", path);
+        }
+        catch (URISyntaxException ex)
+        {
+            logger.error("URI error.", ex);
+        }
+        return path;
+    }
+
     DefaultConnectionConfiguration()
     {
         this(5011, 5012, "localhost", false);
@@ -13,15 +51,48 @@ class DefaultConnectionConfiguration implements ConnectionConfiguration
 
     DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl)
     {
+        this(port, udpPort, ipAddress, ssl, findKeyStorePath(null), DEFAULT_KEY_STORE_PASSWORD);
+    }
+
+    DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl, String keystorePath, String keystorePassword)
+    {
         this.port = port;
         this.udpPort = udpPort;
         this.ipAddress = ipAddress;
         this.ssl = ssl;
+        this.keystorePath = keystorePath;
+        this.keystorePassword = keystorePassword;
     }
     private int port;
     private int udpPort;
     private String ipAddress;
     private boolean ssl;
+    private String keystorePath;
+    private String keystorePassword;
+
+    @Override
+    public String getKeystorePassword()
+    {
+        return keystorePassword;
+    }
+
+    @Override
+    public void setKeystorePassword(String keystorePassword)
+    {
+        this.keystorePassword = keystorePassword;
+    }
+
+    @Override
+    public void setKeystorePath(String keystorePath)
+    {
+        this.keystorePath = keystorePath;
+    }
+
+    @Override
+    public String getKeystorePath()
+    {
+        return keystorePath;
+    }
 
     @Override
     public String getIpAddress()
