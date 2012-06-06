@@ -59,9 +59,14 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         //blocks here
         logger.trace("{} About to block for read Object");
         readObject = this.inputStream.readObject();
-        logger.trace("{} Read Object from Stream: {} ", "read", readObject);
+        logger.trace("{} Read Object from Stream: {} ", "", readObject);
 
         return readObject;
+    }
+
+    public void close()
+    {
+        //todo
     }
 
     @Override
@@ -71,7 +76,10 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         {
             //find better way to receive id
             int id = this.inputStream.readInt();
-            this.connection.setConnectionId(id);
+            synchronized (this)
+            {
+                this.connection.setConnectionId(id);
+            }
             this.connected = true;
             logger.info("TcpRecieveThread Id set {}", id);
         }

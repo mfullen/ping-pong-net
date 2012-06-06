@@ -19,7 +19,11 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import ping.pong.net.client.Client;
+import ping.pong.net.client.io.IoClientImpl;
 import ping.pong.net.connection.ConnectionConfiguration;
+import ping.pong.net.connection.ConnectionFactory;
+import ping.pong.net.connection.MessageListener;
 
 /**
  *
@@ -162,8 +166,24 @@ public class ClientExample
                                                                CertificateException,
                                                                URISyntaxException
     {
-        ssl2();
-        regularConnectionByteArrayStaysOpen();
+       // ssl2();
+       // regularConnectionByteArrayStaysOpen();
+        clientApiConnect();
+    }
+
+    public static void clientApiConnect()
+    {
+        IoClientImpl<String> client = new IoClientImpl<String>(ConnectionFactory.createConnectionConfiguration());
+        client.addMessageListener(new MessageListener<Client, String>(){
+
+            @Override
+            public void messageReceived(Client source, String message)
+            {
+                System.out.println("CLient Id: " + source.getId());
+                System.out.println("Message: " + message);
+            }
+        });
+        client.start();
     }
 
     public static void regularConnectionByteArray() throws IOException,

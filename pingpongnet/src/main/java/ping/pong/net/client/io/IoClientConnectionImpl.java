@@ -1,5 +1,11 @@
 package ping.pong.net.client.io;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.Envelope;
@@ -13,25 +19,31 @@ final class IoClientConnectionImpl<MessageType> implements
         Connection<MessageType>,
         MessageProcessor<MessageType>
 {
+    public static final Logger logger = LoggerFactory.getLogger(IoClientConnectionImpl.class);
     protected ConnectionConfiguration config = null;
     protected IoClientImpl<MessageType> client = null;
     protected boolean connected = false;
     protected int connectionId = -1;
+    private IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
+    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private LinkedBlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
+    private final Object connectLock = new Object();
 
     public IoClientConnectionImpl(IoClientImpl<MessageType> client, ConnectionConfiguration config)
     {
         this.config = config;
         this.client = client;
+        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, this);
     }
 
     @Override
     public void close()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.ioTcpReadRunnable.close();
     }
 
     @Override
-    public boolean isConnected()
+    public synchronized  boolean isConnected()
     {
         return this.connected;
     }
@@ -46,6 +58,15 @@ final class IoClientConnectionImpl<MessageType> implements
     public void setConnectionId(int id)
     {
         this.connectionId = id;
+
+        if (id > 0)
+        {
+            synchronized (this.connectLock)
+            {
+                this.connected = true;
+                this.connectLock.notifyAll();
+            }
+        }
     }
 
     @Override
@@ -57,7 +78,31 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void run()
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.executorService.execute(this.ioTcpReadRunnable);
+
+        synchronized (this.connectLock)
+        {
+            try
+            {
+                this.connectLock.wait();
+            }
+            catch (InterruptedException ex)
+            {
+                logger.error("Connect lock error", ex);
+            }
+        }
+        while (this.isConnected())
+        {
+            try
+            {
+                MessageType message = this.receiveQueue.take();
+                this.client.handleMessageReceived(message);
+            }
+            catch (InterruptedException ex)
+            {
+                logger.error("Error processing Receive Message queue", ex);
+            }
+        }
     }
 
     @Override
@@ -69,8 +114,7 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void enqueueReceivedMessage(MessageType message)
     {
-        //add to queue
-        // client.
+        this.receiveQueue.add(message);
     }
 
     @Override

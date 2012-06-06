@@ -1,14 +1,8 @@
 package ping.pong.net.client.io;
 
-import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.client.Client;
@@ -16,6 +10,7 @@ import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionFactory;
+import ping.pong.net.connection.DisconnectInfo;
 import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 
@@ -29,8 +24,7 @@ public final class IoClientImpl<Message> implements Client<Message>
     protected Connection<Message> connection = null;
     protected ConnectionConfiguration config = null;
     protected DatagramSocket udpSocket = null;
-
-    protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
+    protected List<MessageListener<? super Client<Message>, Message>> messageListeners = new ArrayList<MessageListener<? super Client<Message>, Message>>();
     protected List<ClientConnectionListener> connectionListeners = new ArrayList<ClientConnectionListener>();
 
     public IoClientImpl()
@@ -41,6 +35,7 @@ public final class IoClientImpl<Message> implements Client<Message>
     public IoClientImpl(ConnectionConfiguration config)
     {
         this.config = config;
+        this.connection = new IoClientConnectionImpl<Message>(this, config);
     }
 
     @Override
@@ -58,7 +53,7 @@ public final class IoClientImpl<Message> implements Client<Message>
         {
             Thread connectionThread = new Thread(this.connection);
             connectionThread.start();
-            logger.info("Client connected to server {} on port {}", -1, -1);
+            logger.info("Client connected to server {} on TCP port {}", this.config.getIpAddress(), this.config.getPort());
         }
     }
 
@@ -88,6 +83,30 @@ public final class IoClientImpl<Message> implements Client<Message>
             return this.connection.getConnectionId();
         }
         return -1;
+    }
+
+    synchronized void handleMessageReceived(Message message)
+    {
+        for (MessageListener<? super Client<Message>, Message> messageListener : messageListeners)
+        {
+            messageListener.messageReceived(this, message);
+        }
+    }
+
+    synchronized void onClientConnected()
+    {
+        for (ClientConnectionListener clientConnectionListener : connectionListeners)
+        {
+            clientConnectionListener.clientConnected(this);
+        }
+    }
+
+    synchronized void onClientDisconnected(DisconnectInfo disconnectInfo)
+    {
+        for (ClientConnectionListener clientConnectionListener : connectionListeners)
+        {
+            clientConnectionListener.clientDisconnected(this, disconnectInfo);
+        }
     }
 
     @Override

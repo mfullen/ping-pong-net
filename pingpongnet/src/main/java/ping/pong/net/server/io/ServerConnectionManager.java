@@ -28,7 +28,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
     protected ServerSocket tcpServerSocket = null;
     protected DatagramSocket udpServerSocket = null;
     protected IoServerImpl<MessageType> server = null;
-    protected ExecutorService executorService = Executors.newFixedThreadPool(2);
+    //protected ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     public ServerConnectionManager(ConnectionConfiguration configuration, IoServerImpl<MessageType> server)
     {
@@ -46,11 +46,16 @@ final class ServerConnectionManager<MessageType> implements Runnable
             //logger.trace("The Connection Manager has already been shut down. This has no effect");
             return;
         }
-        if (this.executorService != null && !this.executorService.isShutdown())
+//        if (this.executorService != null && !this.executorService.isShutdown())
+//        {
+//            List<Runnable> shutdownNow = this.executorService.shutdownNow();
+//            boolean shutdown = this.executorService.isShutdown() && this.executorService.isTerminated();
+//            logger.info("Shutdown of Executor serivce has {}", shutdown ? "completed successfully." : "failed.");
+//        }
+
+        for (Connection connection : this.server.connectionsMap.values())
         {
-            List<Runnable> shutdownNow = this.executorService.shutdownNow();
-            boolean shutdown = this.executorService.isShutdown() && this.executorService.isTerminated();
-            logger.info("Shutdown of Executor serivce has {}", shutdown ? "completed successfully." : "failed.");
+            connection.close();
         }
 
         this.listening = false;
@@ -83,7 +88,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
 
         this.tcpServerSocket = null;
         this.udpServerSocket = null;
-        this.executorService = null;
+        //this.executorService = null;
     }
 
     /**
@@ -149,7 +154,10 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 if (acceptingSocket != null)
                 {
                     Connection<MessageType> createDefaultIOServerConnection = new IoServerConnectionImpl<MessageType>(this.server, configuration, acceptingSocket, udpServerSocket);
-                    executorService.execute(createDefaultIOServerConnection);
+                    //executorService.execute(createDefaultIOServerConnection);
+                    Thread cThread = new Thread(createDefaultIOServerConnection);
+                    cThread.setDaemon(true);
+                    cThread.start();
                     this.server.addConnection(createDefaultIOServerConnection);
                     logger.info("Connection {} started...", createDefaultIOServerConnection.getConnectionId());
                 }
