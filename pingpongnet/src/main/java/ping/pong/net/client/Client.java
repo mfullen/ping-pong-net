@@ -8,14 +8,12 @@ import ping.pong.net.connection.MessageSender;
  *
  * @author mfullen
  */
-public interface Client<Message extends Envelope<Message>> extends
-        MessageSender<Message>
+public interface Client<Message> extends
+        MessageSender<Envelope<Message>>
 {
     void start();
 
     void close();
-
-    boolean isRunning();
 
     boolean isConnected();
 

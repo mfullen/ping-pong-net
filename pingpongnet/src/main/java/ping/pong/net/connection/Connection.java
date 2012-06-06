@@ -1,7 +1,5 @@
 package ping.pong.net.connection;
 
-import ping.pong.net.server.Server;
-
 /**
  *
  * @author mfullen
@@ -31,4 +29,6 @@ public interface Connection<Message> extends
      * Set the connection Id
      */
     void setConnectionId(int id);
+
+    ConnectionConfiguration getConnectionConfiguration();
 }

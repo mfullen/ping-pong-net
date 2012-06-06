@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 import static org.junit.Assert.*;
 import ping.pong.net.client.ClientConnectionListener;
-import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 
 /**
@@ -53,12 +52,6 @@ public class AppTest
             }
 
             @Override
-            public boolean isRunning()
-            {
-                return running;
-            }
-
-            @Override
             public boolean isConnected()
             {
                 return connected;
@@ -102,14 +95,11 @@ public class AppTest
         };
         assertNotNull(client);
         assertFalse(client.isConnected());
-        assertFalse(client.isRunning());
 
         client.start();
-        assertTrue(client.isRunning());
         assertFalse(client.isConnected());
 
         client.close();
-        assertFalse(client.isRunning());
         assertFalse(client.isConnected());
     }
 }

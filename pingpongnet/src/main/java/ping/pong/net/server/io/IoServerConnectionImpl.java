@@ -415,4 +415,10 @@ final class IoServerConnectionImpl<MessageType> implements
     {
         return "DefaultIoServerConnection{" + "connected=" + connected + ", connectionId=" + connectionId + '}';
     }
+
+    @Override
+    public ConnectionConfiguration getConnectionConfiguration()
+    {
+        return this.config;
+    }
 }
