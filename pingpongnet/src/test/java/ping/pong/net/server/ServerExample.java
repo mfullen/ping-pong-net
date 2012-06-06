@@ -2,6 +2,9 @@ package ping.pong.net.server;
 
 import ping.pong.net.server.io.IoServerImpl;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.net.UnknownHostException;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionFactory;
@@ -57,6 +60,17 @@ public class ServerExample
 
         // Thread.sleep(5000);
         server.start();
+
+
+        ThreadMXBean threads = ManagementFactory.getThreadMXBean();
+        ThreadInfo[] threadInfos = threads.getThreadInfo(threads.getAllThreadIds());
+        for (int i = 0; i < threadInfos.length; i++)
+        {
+            ThreadInfo info = threadInfos[i];
+            long cpuTimeCumulative = threads.getThreadCpuTime(info.getThreadId()); // in nano seconds
+            System.out.println("Info: " + info);
+
+        }
 
     }
 }

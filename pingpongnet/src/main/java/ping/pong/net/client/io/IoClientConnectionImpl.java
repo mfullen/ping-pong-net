@@ -1,15 +1,14 @@
 package ping.pong.net.client.io;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionConfiguration;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageProcessor;
+import ping.pong.net.connection.*;
 
 /**
  *
@@ -25,7 +24,6 @@ final class IoClientConnectionImpl<MessageType> implements
     protected boolean connected = false;
     protected int connectionId = -1;
     private IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
-    private ExecutorService executorService = Executors.newFixedThreadPool(4);
     private LinkedBlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
     private final Object connectLock = new Object();
 
@@ -33,7 +31,21 @@ final class IoClientConnectionImpl<MessageType> implements
     {
         this.config = config;
         this.client = client;
-        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, this);
+        this.init();
+    }
+
+    protected void init()
+    {
+        try
+        {
+            SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
+            Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
+            this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, this, tcpSocket);
+        }
+        catch (IOException ex)
+        {
+            logger.error("Error Creating socket", ex);
+        }
     }
 
     @Override
@@ -43,7 +55,7 @@ final class IoClientConnectionImpl<MessageType> implements
     }
 
     @Override
-    public synchronized  boolean isConnected()
+    public synchronized boolean isConnected()
     {
         return this.connected;
     }
@@ -55,7 +67,7 @@ final class IoClientConnectionImpl<MessageType> implements
     }
 
     @Override
-    public void setConnectionId(int id)
+    public synchronized void setConnectionId(int id)
     {
         this.connectionId = id;
 
@@ -78,8 +90,11 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void run()
     {
-        this.executorService.execute(this.ioTcpReadRunnable);
+        Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoReadThread");
+        tcpreadThread.setDaemon(true);
+        tcpreadThread.start();
 
+        logger.trace("Waiting for ID from server");
         synchronized (this.connectLock)
         {
             try
@@ -91,11 +106,15 @@ final class IoClientConnectionImpl<MessageType> implements
                 logger.error("Connect lock error", ex);
             }
         }
+        logger.trace("Got Id from server {}", this.getConnectionId());
+
         while (this.isConnected())
         {
             try
             {
+                logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
                 MessageType message = this.receiveQueue.take();
+                logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
                 this.client.handleMessageReceived(message);
             }
             catch (InterruptedException ex)
@@ -103,6 +122,8 @@ final class IoClientConnectionImpl<MessageType> implements
                 logger.error("Error processing Receive Message queue", ex);
             }
         }
+        logger.info("Client Connection thread ended.");
+        this.close();
     }
 
     @Override
@@ -119,6 +140,18 @@ final class IoClientConnectionImpl<MessageType> implements
 
     @Override
     public void enqueueMessageToWrite(Envelope<MessageType> message)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void addConnectionEventListener(ConnectionEvent listener)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void removeConnectionEventListener(ConnectionEvent listener)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

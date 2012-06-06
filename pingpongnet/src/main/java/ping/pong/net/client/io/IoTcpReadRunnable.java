@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.MessageProcessor;
 
 /**
@@ -19,7 +17,6 @@ import ping.pong.net.connection.MessageProcessor;
 public final class IoTcpReadRunnable<MessageType> implements Runnable
 {
     public static final Logger logger = LoggerFactory.getLogger(IoTcpReadRunnable.class);
-    private ConnectionConfiguration config = null;
     private Connection connection = null;
     protected MessageProcessor<MessageType> messageProcessor = null;
     protected Socket tcpSocket = null;
@@ -27,20 +24,18 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
     protected ObjectInputStream inputStream = null;
     protected boolean connected = false;
 
-    public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, Connection connection)
+    public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, Connection connection, Socket tcpSocket)
     {
         this.connection = connection;
-        this.config = connection.getConnectionConfiguration();
         this.messageProcessor = messageProcessor;
+        this.tcpSocket = tcpSocket;
         this.init();
     }
 
     protected void init()
     {
-        SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
         try
         {
-            this.tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
             this.outputStream = new ObjectOutputStream(tcpSocket.getOutputStream());
             this.outputStream.flush();
 
@@ -48,7 +43,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         }
         catch (IOException ex)
         {
-            logger.error("Tcp Socket Read Error ", ex);
+            logger.error("Tcp Socket Init Error Error ", ex);
         }
 
     }
@@ -58,6 +53,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         Object readObject = null;
         //blocks here
         logger.trace("{} About to block for read Object");
+
         readObject = this.inputStream.readObject();
         logger.trace("{} Read Object from Stream: {} ", "", readObject);
 
@@ -66,7 +62,22 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
 
     public void close()
     {
-        //todo
+        try
+        {
+            //todo
+            this.connected = false;
+            this.outputStream.flush();
+            this.outputStream.close();
+            this.inputStream.close();
+            synchronized (tcpSocket)
+            {
+                this.tcpSocket.close();
+            }
+        }
+        catch (IOException ex)
+        {
+            logger.error("Error closing Socket");
+        }
     }
 
     @Override
@@ -111,6 +122,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
                 logger.error("TcpRecieveThread ClassnotFound", ex);
             }
         }
+        this.close();
 
     }
 }

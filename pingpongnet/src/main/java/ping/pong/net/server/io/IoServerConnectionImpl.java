@@ -6,6 +6,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
+import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.Envelope;
 import ping.pong.net.server.ServerExceptionHandler;
 
@@ -29,9 +32,9 @@ final class IoServerConnectionImpl<MessageType> implements
     protected ConnectionConfiguration config = null;
     protected boolean connected = false;
     protected int connectionId = -1;
-    protected IoServerImpl<MessageType> server = null;
     private final Object lock = new Object();
     private final Object tcpWriteLock = new Object();
+    protected List<ConnectionEvent> connectionEventListeners = new ArrayList<ConnectionEvent>();
     protected ConcurrentLinkedQueue<MessageType> readQueue = new ConcurrentLinkedQueue<MessageType>();
     protected ConcurrentLinkedQueue<MessageType> tcpWriteQueue = new ConcurrentLinkedQueue<MessageType>();
     protected ConcurrentLinkedQueue<MessageType> udpWriteQueue = new ConcurrentLinkedQueue<MessageType>();
@@ -230,9 +233,8 @@ final class IoServerConnectionImpl<MessageType> implements
     {
     }
 
-    public IoServerConnectionImpl(IoServerImpl<MessageType> server, ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public IoServerConnectionImpl(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
-        this.server = server;
         this.config = config;
         this.tcpSocket = tcpSocket;
         this.udpSocket = udpSocket;
@@ -307,16 +309,22 @@ final class IoServerConnectionImpl<MessageType> implements
 
         this.connected = false;
 
-        //remove the connection from the server
-        if (this.server.hasConnections())
+        for (ConnectionEvent connectionEvent : this.connectionEventListeners)
         {
-            Connection connection = this.server.getConnection(this.connectionId);
-            if (connection != null)
-            {
-                this.server.removeConnection(this);
-            }
+            connectionEvent.onSocketClosed();
         }
+    }
 
+    @Override
+    public void addConnectionEventListener(ConnectionEvent listener)
+    {
+        this.connectionEventListeners.add(listener);
+    }
+
+    @Override
+    public void removeConnectionEventListener(ConnectionEvent listener)
+    {
+        this.connectionEventListeners.remove(listener);
     }
 
     private String getConnectionName()

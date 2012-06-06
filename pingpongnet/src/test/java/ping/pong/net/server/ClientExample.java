@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
@@ -166,16 +169,16 @@ public class ClientExample
                                                                CertificateException,
                                                                URISyntaxException
     {
-       // ssl2();
-       // regularConnectionByteArrayStaysOpen();
+        // ssl2();
+        // regularConnectionByteArrayStaysOpen();
         clientApiConnect();
     }
 
-    public static void clientApiConnect()
+    public static void clientApiConnect() throws InterruptedException
     {
         IoClientImpl<String> client = new IoClientImpl<String>(ConnectionFactory.createConnectionConfiguration());
-        client.addMessageListener(new MessageListener<Client, String>(){
-
+        client.addMessageListener(new MessageListener<Client, String>()
+        {
             @Override
             public void messageReceived(Client source, String message)
             {
@@ -184,6 +187,16 @@ public class ClientExample
             }
         });
         client.start();
+        Thread.sleep(2000);
+        ThreadMXBean threads = ManagementFactory.getThreadMXBean();
+        ThreadInfo[] threadInfos = threads.getThreadInfo(threads.getAllThreadIds());
+        for (int i = 0; i < threadInfos.length; i++)
+        {
+            ThreadInfo info = threadInfos[i];
+            long cpuTimeCumulative = threads.getThreadCpuTime(info.getThreadId()); // in nano seconds
+            System.out.println("Info: " + info);
+
+        }
     }
 
     public static void regularConnectionByteArray() throws IOException,

@@ -157,12 +157,9 @@ public final class IoServerImpl<MessageType> implements
      */
     synchronized void addConnection(Connection<MessageType> connection)
     {
-        int id = this.getNextAvailableId();
-        connection.setConnectionId(id);
-
         logger.trace("Current Connections: {}", this.getConnections());
-        this.connectionsMap.put(id, connection);
-        logger.trace("Adding Connection ({}) to connectionmap ", id);
+        this.connectionsMap.put(connection.getConnectionId(), connection);
+        logger.trace("Adding Connection ({}) to connectionmap ", connection.getConnectionId());
         logger.trace("Current Connections: {}", this.getConnections());
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {

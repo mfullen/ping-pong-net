@@ -4,16 +4,13 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.net.ServerSocketFactory;
-import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
+import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.server.ServerExceptionHandler;
 
 /**
@@ -28,7 +25,6 @@ final class ServerConnectionManager<MessageType> implements Runnable
     protected ServerSocket tcpServerSocket = null;
     protected DatagramSocket udpServerSocket = null;
     protected IoServerImpl<MessageType> server = null;
-    //protected ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     public ServerConnectionManager(ConnectionConfiguration configuration, IoServerImpl<MessageType> server)
     {
@@ -46,12 +42,6 @@ final class ServerConnectionManager<MessageType> implements Runnable
             //logger.trace("The Connection Manager has already been shut down. This has no effect");
             return;
         }
-//        if (this.executorService != null && !this.executorService.isShutdown())
-//        {
-//            List<Runnable> shutdownNow = this.executorService.shutdownNow();
-//            boolean shutdown = this.executorService.isShutdown() && this.executorService.isTerminated();
-//            logger.info("Shutdown of Executor serivce has {}", shutdown ? "completed successfully." : "failed.");
-//        }
 
         for (Connection connection : this.server.connectionsMap.values())
         {
@@ -88,7 +78,6 @@ final class ServerConnectionManager<MessageType> implements Runnable
 
         this.tcpServerSocket = null;
         this.udpServerSocket = null;
-        //this.executorService = null;
     }
 
     /**
@@ -153,13 +142,29 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 if (acceptingSocket != null)
                 {
-                    Connection<MessageType> createDefaultIOServerConnection = new IoServerConnectionImpl<MessageType>(this.server, configuration, acceptingSocket, udpServerSocket);
-                    //executorService.execute(createDefaultIOServerConnection);
-                    Thread cThread = new Thread(createDefaultIOServerConnection);
+                    final Connection<MessageType> ioServerConnection = new IoServerConnectionImpl<MessageType>(configuration, acceptingSocket, udpServerSocket);
+                    ioServerConnection.setConnectionId(this.server.getNextAvailableId());
+                    ioServerConnection.addConnectionEventListener(new ConnectionEvent()
+                    {
+                        @Override
+                        public void onSocketClosed()
+                        {
+                            //remove the connection from the server
+                            if (server.hasConnections())
+                            {
+                                Connection connection = server.getConnection(ioServerConnection.getConnectionId());
+                                if (connection != null)
+                                {
+                                    server.removeConnection(ioServerConnection);
+                                }
+                            }
+                        }
+                    });
+                    Thread cThread = new Thread(ioServerConnection, "Connection: " + ioServerConnection.getConnectionId());
                     cThread.setDaemon(true);
                     cThread.start();
-                    this.server.addConnection(createDefaultIOServerConnection);
-                    logger.info("Connection {} started...", createDefaultIOServerConnection.getConnectionId());
+                    this.server.addConnection(ioServerConnection);
+                    logger.info("Connection {} started...", ioServerConnection.getConnectionId());
                 }
             }
         }

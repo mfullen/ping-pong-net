@@ -15,12 +15,14 @@ public interface Connection<Message> extends
 
     /**
      * If the connection is still connected to a source
+     *
      * @return true if connected, false if not connected
      */
     boolean isConnected();
 
     /**
      * The identification number of the connection
+     *
      * @return identification number of the connection
      */
     int getConnectionId();
@@ -31,4 +33,8 @@ public interface Connection<Message> extends
     void setConnectionId(int id);
 
     ConnectionConfiguration getConnectionConfiguration();
+
+    void addConnectionEventListener(ConnectionEvent listener);
+
+    void removeConnectionEventListener(ConnectionEvent listener);
 }

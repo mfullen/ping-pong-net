@@ -6,11 +6,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.junit.Assert.*;
-import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionConfiguration;
-import ping.pong.net.connection.ConnectionFactory;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.*;
 import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerConnectionListener;
 
@@ -76,6 +72,18 @@ public class IoServerImplTest
 
         @Override
         public ConnectionConfiguration getConnectionConfiguration()
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void addConnectionEventListener(ConnectionEvent listener)
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public void removeConnectionEventListener(ConnectionEvent listener)
         {
             throw new UnsupportedOperationException("Not supported yet.");
         }

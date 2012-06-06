@@ -51,7 +51,7 @@ public final class IoClientImpl<Message> implements Client<Message>
         }
         else
         {
-            Thread connectionThread = new Thread(this.connection);
+            Thread connectionThread = new Thread(this.connection, "IoClientConnection");
             connectionThread.start();
             logger.info("Client connected to server {} on TCP port {}", this.config.getIpAddress(), this.config.getPort());
         }
