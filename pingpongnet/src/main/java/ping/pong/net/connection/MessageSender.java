@@ -4,7 +4,7 @@ package ping.pong.net.connection;
  *
  * @author mfullen
  */
-public interface MessageSender<Message>
+public interface MessageSender<Message extends Object>
 {
     /**
      *  Sends a message to the other end of the connection.

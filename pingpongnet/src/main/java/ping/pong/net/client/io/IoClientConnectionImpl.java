@@ -9,6 +9,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.*;
+import ping.pong.net.connection.messages.ConnectionIdMessage;
 
 /**
  *
@@ -25,7 +26,6 @@ final class IoClientConnectionImpl<MessageType> implements
     protected int connectionId = -1;
     private IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
     private LinkedBlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
-    private final Object connectLock = new Object();
 
     public IoClientConnectionImpl(IoClientImpl<MessageType> client, ConnectionConfiguration config)
     {
@@ -70,15 +70,6 @@ final class IoClientConnectionImpl<MessageType> implements
     public synchronized void setConnectionId(int id)
     {
         this.connectionId = id;
-
-        if (id > 0)
-        {
-            synchronized (this.connectLock)
-            {
-                this.connected = true;
-                this.connectLock.notifyAll();
-            }
-        }
     }
 
     @Override
@@ -93,20 +84,7 @@ final class IoClientConnectionImpl<MessageType> implements
         Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoReadThread");
         tcpreadThread.setDaemon(true);
         tcpreadThread.start();
-
-        logger.trace("Waiting for ID from server");
-        synchronized (this.connectLock)
-        {
-            try
-            {
-                this.connectLock.wait();
-            }
-            catch (InterruptedException ex)
-            {
-                logger.error("Connect lock error", ex);
-            }
-        }
-        logger.trace("Got Id from server {}", this.getConnectionId());
+        this.connected = true;
 
         while (this.isConnected())
         {
@@ -114,8 +92,18 @@ final class IoClientConnectionImpl<MessageType> implements
             {
                 logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
                 MessageType message = this.receiveQueue.take();
-                logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
-                this.client.handleMessageReceived(message);
+
+                if (message instanceof ConnectionIdMessage.ResponseMessage)
+                {
+                    int id = ((ConnectionIdMessage.ResponseMessage) message).getId();
+                    this.setConnectionId(id);
+                    logger.trace("Got Id from server {}", this.getConnectionId());
+                }
+                else
+                {
+                    logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
+                    this.client.handleMessageReceived(message);
+                }
             }
             catch (InterruptedException ex)
             {
@@ -135,7 +123,8 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void enqueueReceivedMessage(MessageType message)
     {
-        this.receiveQueue.add(message);
+        boolean add = this.receiveQueue.add(message);
+        logger.trace("Enqueued message {}", add);
     }
 
     @Override

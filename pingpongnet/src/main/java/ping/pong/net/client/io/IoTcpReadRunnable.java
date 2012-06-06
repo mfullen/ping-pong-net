@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
@@ -83,21 +82,8 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
     @Override
     public void run()
     {
-        try
-        {
-            //find better way to receive id
-            int id = this.inputStream.readInt();
-            synchronized (this)
-            {
-                this.connection.setConnectionId(id);
-            }
-            this.connected = true;
-            logger.info("TcpRecieveThread Id set {}", id);
-        }
-        catch (IOException ex)
-        {
-            logger.error("TcpRecieveThread Error reading Id", ex);
-        }
+
+        this.connected = true;
 
         while (this.connected)
         {

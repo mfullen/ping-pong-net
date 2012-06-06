@@ -61,16 +61,16 @@ public class ServerExample
         // Thread.sleep(5000);
         server.start();
 
-
-        ThreadMXBean threads = ManagementFactory.getThreadMXBean();
-        ThreadInfo[] threadInfos = threads.getThreadInfo(threads.getAllThreadIds());
-        for (int i = 0; i < threadInfos.length; i++)
-        {
-            ThreadInfo info = threadInfos[i];
-            long cpuTimeCumulative = threads.getThreadCpuTime(info.getThreadId()); // in nano seconds
-            System.out.println("Info: " + info);
-
-        }
+//
+//        ThreadMXBean threads = ManagementFactory.getThreadMXBean();
+//        ThreadInfo[] threadInfos = threads.getThreadInfo(threads.getAllThreadIds());
+//        for (int i = 0; i < threadInfos.length; i++)
+//        {
+//            ThreadInfo info = threadInfos[i];
+//            long cpuTimeCumulative = threads.getThreadCpuTime(info.getThreadId()); // in nano seconds
+//            System.out.println("Info: " + info);
+//
+//        }
 
     }
 }

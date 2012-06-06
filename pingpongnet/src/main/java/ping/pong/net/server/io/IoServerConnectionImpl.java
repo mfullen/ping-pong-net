@@ -17,6 +17,8 @@ import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.Envelope;
+import ping.pong.net.connection.messages.ConnectionIdMessage;
+import ping.pong.net.connection.messages.ConnectionIdMessage.ResponseMessage;
 import ping.pong.net.server.ServerExceptionHandler;
 
 /**
@@ -144,7 +146,10 @@ final class IoServerConnectionImpl<MessageType> implements
             {
                 synchronized (tcpWrite)
                 {
-                    outputstream.writeInt(getConnectionId());
+//                    ResponseMessage responseMessage = new ConnectionIdMessage.ResponseMessage(getConnectionId());
+//                    //outputstream.writeObject(responseMessage);
+//                    tcpWriteQueue.add((MessageType)responseMessage);
+                    //outputstream.writeInt(getConnectionId());
                     outputstream.flush();
                     logger.trace("{} Sending Client/Connection Id {}", getConnectionName(), getConnectionId());
                 }
@@ -348,6 +353,14 @@ final class IoServerConnectionImpl<MessageType> implements
     public void setConnectionId(int connectionId)
     {
         this.connectionId = connectionId;
+    }
+
+    synchronized void fireOnSocketCreated()
+    {
+        for (ConnectionEvent connectionEvent : connectionEventListeners)
+        {
+            connectionEvent.onSocketCreated();
+        }
     }
 
     @Override
