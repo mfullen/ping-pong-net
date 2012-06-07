@@ -142,24 +142,6 @@ final class IoServerConnectionImpl<MessageType> implements
                 this.listening = false;
             }
 
-            try
-            {
-                synchronized (tcpWrite)
-                {
-//                    ResponseMessage responseMessage = new ConnectionIdMessage.ResponseMessage(getConnectionId());
-//                    //outputstream.writeObject(responseMessage);
-//                    tcpWriteQueue.add((MessageType)responseMessage);
-                    //outputstream.writeInt(getConnectionId());
-                    outputstream.flush();
-                    logger.trace("{} Sending Client/Connection Id {}", getConnectionName(), getConnectionId());
-                }
-            }
-            catch (IOException ex)
-            {
-                logger.error("{} Error Sending Client/Connection Id {}", getConnectionName(), getConnectionId());
-                this.listening = false;
-            }
-
             listeningLabel:
             while (this.listening)
             {

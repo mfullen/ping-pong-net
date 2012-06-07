@@ -40,7 +40,7 @@ final class IoClientConnectionImpl<MessageType> implements
         {
             SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
             Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
-            this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, this, tcpSocket);
+            this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, tcpSocket);
         }
         catch (IOException ex)
         {
@@ -75,7 +75,28 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void sendMessage(Envelope<MessageType> message)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (message.isReliable())
+        {
+            sendTcpMessage(message);
+        }
+        else
+        {
+            sendUdpMessage(message);
+        }
+    }
+
+    protected void sendUdpMessage(Envelope<MessageType> msg)
+    {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    protected void sendTcpMessage(Envelope<MessageType> msg)
+    {
+        if (this.ioTcpReadRunnable != null && this.ioTcpReadRunnable.isConnected())
+        {
+            logger.trace("Enqueued {} TCP Message to write", msg);
+            this.enqueueMessageToWrite(msg);
+        }
     }
 
     @Override
@@ -84,6 +105,7 @@ final class IoClientConnectionImpl<MessageType> implements
         Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoReadThread");
         tcpreadThread.setDaemon(true);
         tcpreadThread.start();
+
         this.connected = true;
 
         while (this.isConnected())

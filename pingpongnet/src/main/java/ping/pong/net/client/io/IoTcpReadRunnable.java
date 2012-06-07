@@ -6,7 +6,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.MessageProcessor;
 
 /**
@@ -16,16 +15,14 @@ import ping.pong.net.connection.MessageProcessor;
 public final class IoTcpReadRunnable<MessageType> implements Runnable
 {
     public static final Logger logger = LoggerFactory.getLogger(IoTcpReadRunnable.class);
-    private Connection connection = null;
     protected MessageProcessor<MessageType> messageProcessor = null;
     protected Socket tcpSocket = null;
     protected ObjectOutputStream outputStream = null;
     protected ObjectInputStream inputStream = null;
     protected boolean connected = false;
 
-    public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, Connection connection, Socket tcpSocket)
+    public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, Socket tcpSocket)
     {
-        this.connection = connection;
         this.messageProcessor = messageProcessor;
         this.tcpSocket = tcpSocket;
         this.init();
@@ -47,7 +44,12 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
 
     }
 
-    protected Object readObject() throws IOException, ClassNotFoundException
+    public boolean isConnected()
+    {
+        return connected;
+    }
+
+    protected synchronized Object readObject() throws IOException, ClassNotFoundException
     {
         Object readObject = null;
         //blocks here
