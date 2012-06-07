@@ -1,6 +1,3 @@
-// -----------------------------------------------------------------------------
-// Copyright 2011-2012  Harris Corporation, All Rights Reserved
-// -----------------------------------------------------------------------------
 package ping.pong.net.server;
 
 import ping.pong.net.client.Client;
