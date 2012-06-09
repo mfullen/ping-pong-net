@@ -2,6 +2,8 @@ package ping.pong.net.client.io;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -24,34 +26,45 @@ final class IoClientConnectionImpl<MessageType> implements
     protected IoClientImpl<MessageType> client = null;
     protected boolean connected = false;
     protected int connectionId = -1;
+    protected List<ConnectionEvent> connectionEventListeners = new ArrayList<ConnectionEvent>();
     private IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
+    private IoTcpWriteRunnable<MessageType> ioTcpWriteRunnable = null;
     private LinkedBlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
 
     public IoClientConnectionImpl(IoClientImpl<MessageType> client, ConnectionConfiguration config)
     {
         this.config = config;
         this.client = client;
-        this.init();
     }
 
-    protected void init()
+    protected boolean initTcp()
     {
+        boolean successful = false;
         try
         {
             SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
             Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
             this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, tcpSocket);
+            this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(tcpSocket);
+            successful = true;
         }
         catch (IOException ex)
         {
             logger.error("Error Creating socket", ex);
         }
+        return successful;
     }
 
     @Override
     public void close()
     {
+        if (this.ioTcpReadRunnable == null || this.ioTcpWriteRunnable == null)
+        {
+            logger.warn("Connection cannot be closed, it never started");
+            return;
+        }
         this.ioTcpReadRunnable.close();
+        this.ioTcpWriteRunnable.close();
     }
 
     @Override
@@ -75,38 +88,40 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void sendMessage(Envelope<MessageType> message)
     {
-        if (message.isReliable())
-        {
-            sendTcpMessage(message);
-        }
-        else
-        {
-            sendUdpMessage(message);
-        }
+        this.enqueueMessageToWrite(message);
     }
 
-    protected void sendUdpMessage(Envelope<MessageType> msg)
+    protected void sendUdpMessage(MessageType msg)
     {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    protected void sendTcpMessage(Envelope<MessageType> msg)
+    protected void sendTcpMessage(MessageType msg)
     {
-        if (this.ioTcpReadRunnable != null && this.ioTcpReadRunnable.isConnected())
+        if (this.ioTcpWriteRunnable != null && this.ioTcpWriteRunnable.isRunning())
         {
             logger.trace("Enqueued {} TCP Message to write", msg);
-            this.enqueueMessageToWrite(msg);
+            boolean enqueueMessage = this.ioTcpWriteRunnable.enqueueMessage(msg);
+            logger.trace("Message Enqueued {}", enqueueMessage);
         }
     }
 
     @Override
     public void run()
     {
-        Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoReadThread");
-        tcpreadThread.setDaemon(true);
-        tcpreadThread.start();
+        boolean initTcp = this.initTcp();
+        if (initTcp)
+        {
+            Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoTcpReadThread");
+            tcpreadThread.setDaemon(true);
+            tcpreadThread.start();
+            
+            Thread tcpWriteThread = new Thread(this.ioTcpWriteRunnable, "IoTcpWriteThread");
+            tcpWriteThread.setDaemon(true);
+            tcpWriteThread.start();
 
-        this.connected = true;
+            this.connected = true;
+        }
 
         while (this.isConnected())
         {
@@ -152,18 +167,25 @@ final class IoClientConnectionImpl<MessageType> implements
     @Override
     public void enqueueMessageToWrite(Envelope<MessageType> message)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (message.isReliable())
+        {
+            sendTcpMessage(message.getMessage());
+        }
+        else
+        {
+            sendUdpMessage(message.getMessage());
+        }
     }
 
     @Override
     public void addConnectionEventListener(ConnectionEvent listener)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.connectionEventListeners.add(listener);
     }
 
     @Override
     public void removeConnectionEventListener(ConnectionEvent listener)
     {
-        throw new UnsupportedOperationException("Not supported yet.");
+        this.connectionEventListeners.remove(listener);
     }
 }

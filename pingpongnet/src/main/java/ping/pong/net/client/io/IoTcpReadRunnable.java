@@ -2,25 +2,46 @@ package ping.pong.net.client.io;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.MessageProcessor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- *
+ * IoTcpReadRunnable is a thread for reading messages from an input stream.
+ * The thread blocks when attempting to read data. When data is read it is passed
+ * to the MessageProcessor
  * @author mfullen
  */
 public final class IoTcpReadRunnable<MessageType> implements Runnable
 {
+    /**
+     * Logger for IoTcpReadRunnable
+     */
     public static final Logger logger = LoggerFactory.getLogger(IoTcpReadRunnable.class);
+    /**
+     * MessageProcessor to process the messages read
+     */
     protected MessageProcessor<MessageType> messageProcessor = null;
+    /**
+     * The socket the thread is reading from
+     */
     protected Socket tcpSocket = null;
-    protected ObjectOutputStream outputStream = null;
+    /**
+     * The inputstream in which the thread is reading from
+     */
     protected ObjectInputStream inputStream = null;
-    protected boolean connected = false;
+    /**
+     * Flag for whether this thread is running
+     */
+    protected boolean running = false;
 
+    /**
+     * Constructor for the Read Thread
+     * @param messageProcessor The processor which handles the incoming message
+     * @param tcpSocket The socket in which the message is being read from
+     */
     public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, Socket tcpSocket)
     {
         this.messageProcessor = messageProcessor;
@@ -28,28 +49,38 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         this.init();
     }
 
+    /**
+     * Initialize the InputStream from the socket
+     */
     protected void init()
     {
         try
         {
-            this.outputStream = new ObjectOutputStream(tcpSocket.getOutputStream());
-            this.outputStream.flush();
-
             this.inputStream = new ObjectInputStream(tcpSocket.getInputStream());
         }
         catch (IOException ex)
         {
             logger.error("Tcp Socket Init Error Error ", ex);
         }
-
     }
 
-    public boolean isConnected()
+    /**
+     * Is this thread still running/running?
+     * @return
+     */
+    public boolean isRunning()
     {
-        return connected;
+        return this.running;
     }
 
-    protected synchronized Object readObject() throws IOException, ClassNotFoundException
+    /**
+     * Block while attempting to read Object from Stream
+     * @return return the object from the stream
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    protected synchronized Object readObject() throws IOException,
+                                                      ClassNotFoundException
     {
         Object readObject = null;
         //blocks here
@@ -61,14 +92,15 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         return readObject;
     }
 
+    /**
+     * Closes the thread but properly shuts down the socket by closing the inputstream
+     * and the tcpsocket. Calls Socket.close
+     */
     public void close()
     {
         try
         {
-            //todo
-            this.connected = false;
-            this.outputStream.flush();
-            this.outputStream.close();
+            this.running = false;
             this.inputStream.close();
             synchronized (tcpSocket)
             {
@@ -77,17 +109,16 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         }
         catch (IOException ex)
         {
-            logger.error("Error closing Socket");
+            logger.error("Error closing Socket", ex);
         }
     }
 
     @Override
     public void run()
     {
+        this.running = true;
 
-        this.connected = true;
-
-        while (this.connected)
+        while (this.running)
         {
             try
             {
@@ -111,6 +142,5 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
             }
         }
         this.close();
-
     }
 }

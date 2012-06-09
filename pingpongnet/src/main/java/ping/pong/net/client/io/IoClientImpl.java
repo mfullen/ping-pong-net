@@ -24,7 +24,7 @@ public final class IoClientImpl<Message> implements Client<Message>
     protected Connection<Message> connection = null;
     protected ConnectionConfiguration config = null;
     protected DatagramSocket udpSocket = null;
-    protected List<MessageListener<? super Client<Message>, Message>> messageListeners = new ArrayList<MessageListener<? super Client<Message>, Message>>();
+    protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
     protected List<ClientConnectionListener> connectionListeners = new ArrayList<ClientConnectionListener>();
 
     public IoClientImpl()
@@ -156,6 +156,13 @@ public final class IoClientImpl<Message> implements Client<Message>
     @Override
     public void sendMessage(Envelope<Message> message)
     {
-        this.connection.sendMessage(message);
+        if (this.connection == null)
+        {
+            logger.error("Connection is null");
+        }
+        else if (this.connection.isConnected())
+        {
+            this.connection.sendMessage(message);
+        }
     }
 }

@@ -7,6 +7,7 @@ import ping.pong.net.client.io.IoClientImpl;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionFactory;
 import ping.pong.net.connection.Envelope;
+import ping.pong.net.connection.EnvelopeFactory;
 import ping.pong.net.connection.MessageListener;
 import ping.pong.net.server.io.IoServerImpl;
 
@@ -21,20 +22,7 @@ public class ServerMultiClient
             public void connectionAdded(Server server, Connection conn)
             {
                 System.out.println("Connection Added");
-                server.broadcast(new Envelope<String>()
-                {
-                    @Override
-                    public boolean isReliable()
-                    {
-                        return true;
-                    }
-
-                    @Override
-                    public String getMessage()
-                    {
-                        return "Test";
-                    }
-                });
+                server.broadcast(EnvelopeFactory.createTcpEnvelope("Test"));
             }
 
             @Override
@@ -78,6 +66,8 @@ public class ServerMultiClient
                 {
                     System.out.println("CLient Id: " + source.getId());
                     System.out.println("Message: " + message);
+
+                    source.sendMessage(EnvelopeFactory.createTcpEnvelope("*************************"));
                 }
             });
             client.start();
