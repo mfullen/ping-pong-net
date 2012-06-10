@@ -1,6 +1,5 @@
 package ping.pong.net.client.io;
 
-import java.net.DatagramSocket;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -15,23 +14,45 @@ import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 
 /**
- *
+ * The Io Client Implementation of the Client interface.
  * @author mfullen
  */
 public final class IoClientImpl<Message> implements Client<Message>
 {
+    /**
+     * The logger being user for this class
+     */
     public static final Logger logger = LoggerFactory.getLogger(IoClientImpl.class);
+    /**
+     * The Connection for the Client
+     */
     protected Connection<Message> connection = null;
+    /**
+     * The connection Configuration used when attempting to create a connection
+     */
     protected ConnectionConfiguration config = null;
-    protected DatagramSocket udpSocket = null;
+    /**
+     * The list of Message listeners for this client
+     */
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
+    /**
+     * The list of ConnectionListeners for this client
+     */
     protected List<ClientConnectionListener> connectionListeners = new ArrayList<ClientConnectionListener>();
 
+    /**
+     * Constructor for a default IoClient Implementation. Creates it based of
+     * defaults for a Connection Configuration
+     */
     public IoClientImpl()
     {
         this(ConnectionFactory.createConnectionConfiguration());
     }
 
+    /**
+     * Creates a Client Implementation based off the given ConnectionConfiguration
+     * @param config the configuration to use
+     */
     public IoClientImpl(ConnectionConfiguration config)
     {
         this.config = config;
@@ -85,6 +106,11 @@ public final class IoClientImpl<Message> implements Client<Message>
         return -1;
     }
 
+    /**
+     * Package Private method which handles message received from internal classes
+     * and passes the message through the message listeners
+     * @param message the message to pass on to the message listeners
+     */
     synchronized void handleMessageReceived(Message message)
     {
         for (MessageListener<? super Client<Message>, Message> messageListener : messageListeners)
@@ -93,6 +119,10 @@ public final class IoClientImpl<Message> implements Client<Message>
         }
     }
 
+    /**
+     * Package Private method which handles client connected from internal classes
+     * and passes the message through the connection listeners
+     */
     synchronized void onClientConnected()
     {
         for (ClientConnectionListener clientConnectionListener : connectionListeners)
@@ -101,6 +131,10 @@ public final class IoClientImpl<Message> implements Client<Message>
         }
     }
 
+    /**
+     * Package Private method which handles client disconnected from internal classes
+     * @param disconnectInfo The disconnect information associated with the disconnect
+     */
     synchronized void onClientDisconnected(DisconnectInfo disconnectInfo)
     {
         for (ClientConnectionListener clientConnectionListener : connectionListeners)

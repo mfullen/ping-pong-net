@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocketFactory;
@@ -14,29 +15,65 @@ import ping.pong.net.connection.*;
 import ping.pong.net.connection.messages.ConnectionIdMessage;
 
 /**
- *
+ * Connection Implementation for Io.
  * @author mfullen
  */
 final class IoClientConnectionImpl<MessageType> implements
         Connection<MessageType>,
         MessageProcessor<MessageType>
 {
+    /**
+     * The logger to use in the class
+     */
     public static final Logger logger = LoggerFactory.getLogger(IoClientConnectionImpl.class);
+    /**
+     * The ConnectionConfiguration this connection is using
+     */
     protected ConnectionConfiguration config = null;
+    /**
+     * The Client reference this connection is using
+     */
     protected IoClientImpl<MessageType> client = null;
+    /**
+     * Flag for whether this connection is actually connected to a socket
+     */
     protected boolean connected = false;
+    /**
+     * The id of the connection
+     */
     protected int connectionId = -1;
+    /**
+     * A list of Connection Events
+     */
     protected List<ConnectionEvent> connectionEventListeners = new ArrayList<ConnectionEvent>();
+    /**
+     * This connection's TcpReadThread
+     */
     private IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
+    /**
+     * This connection's TcpWriteThread
+     */
     private IoTcpWriteRunnable<MessageType> ioTcpWriteRunnable = null;
-    private LinkedBlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
+    /**
+     * This connections queue of received messages to process
+     */
+    private BlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
 
+    /**
+     * Constructor for the Client Implementation
+     * @param client The client the connection is created from
+     * @param config the configuration to use in initiating the client
+     */
     public IoClientConnectionImpl(IoClientImpl<MessageType> client, ConnectionConfiguration config)
     {
         this.config = config;
         this.client = client;
     }
 
+    /**
+     * Method to initialize a TCP connection. Creates read and Write threads for TCP
+     * @return true if the initiation is a success, false otherwise.
+     */
     protected boolean initTcp()
     {
         boolean successful = false;
@@ -91,11 +128,19 @@ final class IoClientConnectionImpl<MessageType> implements
         this.enqueueMessageToWrite(message);
     }
 
+    /**
+     * This method should enqueue a Message to the UDP write thread
+     * @param msg the message to enqueue for sending
+     */
     protected void sendUdpMessage(MessageType msg)
     {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    /**
+     * This method enqueues a message on the TcpWrite thread for sending
+     * @param msg the message to enqueue for sending
+     */
     protected void sendTcpMessage(MessageType msg)
     {
         if (this.ioTcpWriteRunnable != null && this.ioTcpWriteRunnable.isRunning())
@@ -115,7 +160,7 @@ final class IoClientConnectionImpl<MessageType> implements
             Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoTcpReadThread");
             tcpreadThread.setDaemon(true);
             tcpreadThread.start();
-            
+
             Thread tcpWriteThread = new Thread(this.ioTcpWriteRunnable, "IoTcpWriteThread");
             tcpWriteThread.setDaemon(true);
             tcpWriteThread.start();
