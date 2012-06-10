@@ -6,6 +6,7 @@ package ping.pong.net.server;
 
 import java.util.Collection;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 
 /**
@@ -20,11 +21,7 @@ class DefaultServer implements Server
     {
     }
 
-    @Override
-    public void broadcast(Object message)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+
 
     @Override
     public void start()
@@ -88,6 +85,12 @@ class DefaultServer implements Server
 
     @Override
     public int getNextAvailableId()
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void broadcast(Envelope message)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }

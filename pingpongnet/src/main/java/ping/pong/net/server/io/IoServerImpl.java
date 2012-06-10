@@ -21,7 +21,7 @@ import ping.pong.net.server.ServerConnectionListener;
  * @author mfullen
  */
 public final class IoServerImpl<MessageType> implements
-        Server<Envelope<MessageType>>
+        Server<MessageType>
 {
     public static final Logger logger = LoggerFactory.getLogger(IoServerImpl.class);
     private static final String CANT_ADD_LISTENER = "You must add Listeners before the server is started";
@@ -108,7 +108,7 @@ public final class IoServerImpl<MessageType> implements
     }
 
     @Override
-    public void addMessageListener(MessageListener<? super Connection, Envelope<MessageType>> listener)
+    public void addMessageListener(MessageListener<? super Connection, MessageType> listener)
     {
         boolean added = false;
         if (listener != null)
@@ -119,7 +119,7 @@ public final class IoServerImpl<MessageType> implements
     }
 
     @Override
-    public void removeMessageListener(MessageListener<? super Connection, Envelope<MessageType>> listener)
+    public void removeMessageListener(MessageListener<? super Connection, MessageType> listener)
     {
         boolean removed = false;
         if (listener != null)

@@ -22,7 +22,7 @@ public class ServerMultiClient
             public void connectionAdded(Server server, Connection conn)
             {
                 System.out.println("Connection Added");
-                server.broadcast(EnvelopeFactory.createTcpEnvelope("Test"));
+                //server.broadcast(EnvelopeFactory.createTcpEnvelope("Test"));
             }
 
             @Override
@@ -31,46 +31,45 @@ public class ServerMultiClient
                 System.out.println("Connection removed was " + conn.getConnectionId());
             }
         });
-
-        server.start();
-        Timer timer = new Timer("HeatBeat", true);
-        timer.schedule(new TimerTask()
+        server.addMessageListener(new MessageListener<Connection, String>()
         {
             @Override
-            public void run()
+            public void messageReceived(Connection source, String message)
             {
-                server.broadcast(new Envelope<String>()
-                {
-                    @Override
-                    public boolean isReliable()
-                    {
-                        return true;
-                    }
-
-                    @Override
-                    public String getMessage()
-                    {
-                        return "HeartBeat";
-                    }
-                });
+                System.out.println("Message Received On Server From: " + source.getConnectionId());
+                System.out.println("Message: " + message);
             }
-        }, 500, 1000);
+        });
 
-        for (int i = 0; i < 5; i++)
+        server.start();
+
+        boolean heartBeat = false;
+
+        if (heartBeat)
         {
-            IoClientImpl<String> client = new IoClientImpl<String>(ConnectionFactory.createConnectionConfiguration());
-            client.addMessageListener(new MessageListener<Client, String>()
+            Timer timer = new Timer("HeatBeat", true);
+            timer.schedule(new TimerTask()
             {
                 @Override
-                public void messageReceived(Client source, String message)
+                public void run()
                 {
-                    System.out.println("CLient Id: " + source.getId());
-                    System.out.println("Message: " + message);
+                    server.broadcast(new Envelope<String>()
+                    {
+                        @Override
+                        public boolean isReliable()
+                        {
+                            return true;
+                        }
 
-                    source.sendMessage(EnvelopeFactory.createTcpEnvelope("*************************"));
+                        @Override
+                        public String getMessage()
+                        {
+                            return "HeartBeat";
+                        }
+                    });
                 }
-            });
-            client.start();
+            }, 500, 1000);
         }
+
     }
 }

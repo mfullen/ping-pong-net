@@ -1,32 +1,34 @@
 package ping.pong.net.server.io;
 
-import java.io.EOFException;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.LinkedBlockingQueue;
+import ping.pong.net.client.io.IoTcpReadRunnable;
+import ping.pong.net.client.io.IoTcpWriteRunnable;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.messages.ConnectionIdMessage;
-import ping.pong.net.connection.messages.ConnectionIdMessage.ResponseMessage;
-import ping.pong.net.server.ServerExceptionHandler;
+import ping.pong.net.connection.MessageProcessor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.RunnableEventListener;
 
 /**
  *
  * @author mfullen
  */
 final class IoServerConnectionImpl<MessageType> implements
-        Connection<MessageType>
+        Connection<MessageType>,
+        MessageProcessor<MessageType>
 {
     public static final Logger logger = LoggerFactory.getLogger(IoServerConnectionImpl.class);
     protected DatagramSocket udpSocket = null;
@@ -34,12 +36,13 @@ final class IoServerConnectionImpl<MessageType> implements
     protected ConnectionConfiguration config = null;
     protected boolean connected = false;
     protected int connectionId = -1;
-    private final Object lock = new Object();
-    private final Object tcpWriteLock = new Object();
     protected List<ConnectionEvent> connectionEventListeners = new ArrayList<ConnectionEvent>();
-    protected ConcurrentLinkedQueue<MessageType> readQueue = new ConcurrentLinkedQueue<MessageType>();
-    protected ConcurrentLinkedQueue<MessageType> tcpWriteQueue = new ConcurrentLinkedQueue<MessageType>();
-    protected ConcurrentLinkedQueue<MessageType> udpWriteQueue = new ConcurrentLinkedQueue<MessageType>();
+    protected IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
+    protected IoTcpWriteRunnable<MessageType> ioTcpWriteRunnable = null;
+    /**
+     * This connections queue of received messages to process
+     */
+    private BlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
     private ExecutorService executorService = Executors.newFixedThreadPool(4);
     /**
      * The input stream that receives data from the other side of the connection
@@ -49,172 +52,6 @@ final class IoServerConnectionImpl<MessageType> implements
      * The output stream that writes data to the other side of the connection
      */
     protected ObjectOutputStream outputstream;
-    /**
-     *
-     */
-    private Runnable tcpReceive = new Runnable()
-    {
-        boolean listening = true;
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                inputstream = new ObjectInputStream(tcpSocket.getInputStream());
-            }
-            catch (IOException ex)
-            {
-                logger.error("{} Input stream initialization error", getConnectionName(), ex);
-                this.listening = false;
-            }
-
-            while (listening)
-            {
-                if (tcpSocket.isClosed() || !tcpSocket.isConnected())
-                {
-                    logger.trace("{} TCP Socket is closed or not Connected. TCP Receive Thread shutting down", getConnectionName());
-                    this.listening = false;
-                }
-                else
-                {
-                    //todo supply an interface to swap in different read implementations
-                    Object readObject = null;
-                    try
-                    {
-                        //blocks here
-                        logger.trace("{} About to block for read Object", getConnectionName());
-                        readObject = inputstream.readObject();
-                        logger.trace("{} Read Object from Stream: {} ", getConnectionName(), readObject);
-
-                        if (readObject != null)
-                        {
-                            enqueueMessage((MessageType) readObject);
-                        }
-                        else
-                        {
-                            logger.error("Read Object is null");
-                        }
-                    }
-                    catch (EOFException eofException)
-                    {
-                        logger.trace("{} End of Stream. Socket was closed: ", getConnectionName());
-                        this.listening = false;
-                    }
-                    catch (IOException ex)
-                    {
-                        logger.error("{} TCP Receive Class IO Exception: ", getConnectionName(), ex);
-                        this.listening = false;
-                    }
-                    catch (ClassNotFoundException ex)
-                    {
-                        logger.error("{} TCP Receive Class NotFound: ", getConnectionName(), ex);
-                        this.listening = false;
-                    }
-                }
-            }
-
-            //close connection
-            logger.info("{} Receive thread calling close", getConnectionName());
-            close();
-        }
-    };
-    private final Runnable tcpWrite = new Runnable()
-    {
-        boolean listening = true;
-
-        public boolean isListening()
-        {
-            return listening;
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                outputstream = new ObjectOutputStream(tcpSocket.getOutputStream());
-                outputstream.flush();
-            }
-            catch (IOException ex)
-            {
-                logger.error("{} Output stream initialization error", getConnectionName(), ex);
-                this.listening = false;
-            }
-
-            listeningLabel:
-            while (this.listening)
-            {
-                if (tcpSocket.isClosed() || !tcpSocket.isConnected())
-                {
-                    logger.trace("{} TCP Socket is closed or not Connected. TCP Write Thread shutting down", getConnectionName());
-                    this.listening = false;
-                    break listeningLabel;
-                }
-                while (!tcpWriteQueue.isEmpty())
-                {
-                    //send through the socket
-                    MessageType message = tcpWriteQueue.poll();
-
-                    try
-                    {
-                        synchronized (tcpWrite)
-                        {
-                            outputstream.writeObject(message);
-                            logger.trace("{} Output wrote object: {} ", getConnectionName(), message);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        logger.error("{} Output Stream WriteObject error: {} ", getConnectionName(), e);
-                    }
-                    finally
-                    {
-                        try
-                        {
-                            outputstream.flush();
-                        }
-                        catch (IOException ex)
-                        {
-                            logger.error("{} Output Stream Flush error: {} ", getConnectionName());
-                            this.listening = false;
-                        }
-                    }
-                }
-                synchronized (tcpWriteLock)
-                {
-                    try
-                    {
-                        logger.trace("{} Tcp Write going into waiting", getConnectionName());
-                        tcpWriteLock.wait();
-                    }
-                    catch (InterruptedException ex)
-                    {
-                        logger.error("{} WriteLock failed: ", getConnectionName(), ex);
-                        this.listening = false;
-                    }
-                }
-            }
-            logger.info("{} Write thread calling close", getConnectionName());
-            close();
-        }
-    };
-    private Runnable udpReceive = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-    };
-    private Runnable udpWrite = new Runnable()
-    {
-        @Override
-        public void run()
-        {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-    };
 
     private IoServerConnectionImpl()
     {
@@ -225,74 +62,26 @@ final class IoServerConnectionImpl<MessageType> implements
         this.config = config;
         this.tcpSocket = tcpSocket;
         this.udpSocket = udpSocket;
-    }
-
-    public void enqueueMessage(MessageType message)
-    {
-        boolean added = this.readQueue.add(message);
-        synchronized (this.lock)
-        {
-            this.lock.notifyAll();
-        }
-        logger.trace("{} Message enqueued {}", this.getConnectionName(), added ? "Successfully." : "Failed.");
-    }
-
-    private void closeTcpSocket()
-    {
-        try
-        {
-            if (this.outputstream != null)
-            {
-                this.outputstream.flush();
-                this.outputstream.close();
-            }
-        }
-        catch (IOException ex)
-        {
-            logger.error("{} TCP Output stream failed to close", this.getConnectionName(), ex);
-        }
-
-        try
-        {
-            if (this.inputstream != null)
-            {
-                this.inputstream.close();
-            }
-        }
-        catch (IOException ex)
-        {
-            logger.error("{} TCP input stream failed to close", this.getConnectionName(), ex);
-        }
-
-        try
-        {
-            if (!tcpSocket.isClosed())
-            {
-                logger.trace("{} TCP Socket Closing...", this.getConnectionName());
-                tcpSocket.close();
-                logger.trace("{} TCP Socket Closed", this.getConnectionName());
-            }
-            logger.trace("{} TCP Socket Already Closed", this.getConnectionName());
-        }
-        catch (IOException ex)
-        {
-            logger.error("{} TCP Socket closed error: ", getConnectionName());
-            ServerExceptionHandler.handleException(ex, logger);
-        }
-    }
-
-    private void closeUdpSocket()
-    {
+        boolean initTcp = this.initTcp();
+        logger.trace("Tcp Init {}", initTcp);
     }
 
     @Override
     public void close()
     {
-        this.closeTcpSocket();
-        this.tcpReceive = null;
-
-        this.closeUdpSocket();
-        // this.tcpWrite = null;
+        if (this.ioTcpReadRunnable == null || this.ioTcpWriteRunnable == null)
+        {
+            logger.warn("Connection cannot be closed, it never started");
+            return;
+        }
+        if (this.ioTcpWriteRunnable.isRunning())
+        {
+            this.ioTcpWriteRunnable.close();
+        }
+        if (this.ioTcpReadRunnable.isRunning())
+        {
+            this.ioTcpReadRunnable.close();
+        }
 
         this.connected = false;
 
@@ -345,39 +134,55 @@ final class IoServerConnectionImpl<MessageType> implements
         }
     }
 
+    synchronized void fireOnSocketMessageReceived(MessageType message)
+    {
+        for (ConnectionEvent<MessageType> connectionEvent : connectionEventListeners)
+        {
+            connectionEvent.onSocketReceivedMessage(message);
+        }
+    }
+
+    /**
+     * Method to initialize a TCP connection. Creates read and Write threads for TCP
+     * @return true if the initiation is a success, false otherwise.
+     */
+    protected boolean initTcp()
+    {
+        boolean successful = false;
+
+        RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
+        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, tcpSocket);
+        this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, tcpSocket);
+
+        successful = true;
+
+        return successful;
+    }
+
     @Override
     public void run()
     {
+        this.executorService.execute(ioTcpWriteRunnable);
+        this.executorService.execute(ioTcpReadRunnable);
         this.connected = true;
 
-        //start read and write threads
-        this.executorService.execute(tcpWrite);
-        this.executorService.execute(tcpReceive);
-
-
-        while (connected)
+        while (this.isConnected())
         {
-            while (!this.readQueue.isEmpty())
+            try
             {
-                logger.info("{} Processing Queue", this.getConnectionName());
-                //todo fix this to actually process the messages to the listeners
-                MessageType poll = this.readQueue.poll();
-                logger.info("{} {}", this.getConnectionName(), poll);
-            }
+                logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
+                MessageType message = this.receiveQueue.take();
 
-            synchronized (this.lock)
+                logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
+                this.fireOnSocketMessageReceived(message);
+
+            }
+            catch (InterruptedException ex)
             {
-                try
-                {
-                    logger.trace("{} Finished Processing going into waiting...", this.getConnectionName());
-                    this.lock.wait();
-                }
-                catch (InterruptedException ex)
-                {
-                    logger.error("{} Lock failed: ", this.getConnectionName(), ex);
-                }
+                logger.error("Error processing Receive Message queue", ex);
             }
         }
+
         //Connection is done, try to properly close and cleanup
         logger.info("{} Main thread calling close", getConnectionName());
         this.close();
@@ -386,25 +191,16 @@ final class IoServerConnectionImpl<MessageType> implements
     @Override
     public void sendMessage(Envelope<MessageType> message)
     {
-        MessageType msg = message.getMessage();
-
-        if (message.isReliable())
-        {
-            sendTcpMessage(msg);
-        }
-        else
-        {
-            sendUdpMessage(msg);
-        }
+        this.enqueueMessageToWrite(message);
     }
 
     private void sendTcpMessage(MessageType message)
     {
-        synchronized (tcpWriteLock)
+        if (this.ioTcpWriteRunnable != null)
         {
-            boolean added = tcpWriteQueue.add(message);
-            logger.trace("{} Message {} to the write queue", this.getConnectionName(), added ? "successfully added" : "failed to add");
-            tcpWriteLock.notifyAll();
+            logger.trace("Enqueued {} TCP Message to write", message);
+            boolean enqueueMessage = this.ioTcpWriteRunnable.enqueueMessage(message);
+            logger.trace("Message Enqueued {}", enqueueMessage);
         }
     }
 
@@ -423,5 +219,38 @@ final class IoServerConnectionImpl<MessageType> implements
     public ConnectionConfiguration getConnectionConfiguration()
     {
         return this.config;
+    }
+
+    @Override
+    public void enqueueReceivedMessage(MessageType message)
+    {
+        boolean add = this.receiveQueue.add(message);
+        logger.trace("Enqueued message {}", add);
+    }
+
+    @Override
+    public void enqueueMessageToWrite(Envelope<MessageType> message)
+    {
+        if (message.isReliable())
+        {
+            sendTcpMessage(message.getMessage());
+        }
+        else
+        {
+            sendUdpMessage(message.getMessage());
+        }
+    }
+
+    class RunnableEventListenerImpl implements RunnableEventListener
+    {
+        private RunnableEventListenerImpl()
+        {
+        }
+
+        @Override
+        public void onRunnableClosed()
+        {
+            IoServerConnectionImpl.this.close();
+        }
     }
 }

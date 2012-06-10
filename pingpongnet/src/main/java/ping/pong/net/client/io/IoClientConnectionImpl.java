@@ -81,8 +81,9 @@ final class IoClientConnectionImpl<MessageType> implements
         {
             SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
             Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
-            this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, tcpSocket);
-            this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(tcpSocket);
+            RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
+            this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, tcpSocket);
+            this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, tcpSocket);
             successful = true;
         }
         catch (IOException ex)
@@ -90,6 +91,11 @@ final class IoClientConnectionImpl<MessageType> implements
             logger.error("Error Creating socket", ex);
         }
         return successful;
+    }
+
+    protected boolean isAnyRunning()
+    {
+        return this.ioTcpReadRunnable.isRunning() || this.ioTcpWriteRunnable.isRunning();
     }
 
     @Override
@@ -100,8 +106,33 @@ final class IoClientConnectionImpl<MessageType> implements
             logger.warn("Connection cannot be closed, it never started");
             return;
         }
-        this.ioTcpReadRunnable.close();
-        this.ioTcpWriteRunnable.close();
+
+        if (this.isAnyRunning())
+        {
+            this.client.onClientDisconnected(new DisconnectInfo()
+            {
+                @Override
+                public String getReason()
+                {
+                    return "The close method was called";
+                }
+
+                @Override
+                public DisconnectState getDisconnectState()
+                {
+                    return DisconnectState.ERROR;
+                }
+            });
+        }
+
+        if (this.ioTcpWriteRunnable.isRunning())
+        {
+            this.ioTcpWriteRunnable.close();
+        }
+        if (this.ioTcpReadRunnable.isRunning())
+        {
+            this.ioTcpReadRunnable.close();
+        }
     }
 
     @Override
@@ -143,11 +174,15 @@ final class IoClientConnectionImpl<MessageType> implements
      */
     protected void sendTcpMessage(MessageType msg)
     {
-        if (this.ioTcpWriteRunnable != null && this.ioTcpWriteRunnable.isRunning())
+        if (this.ioTcpWriteRunnable != null)
         {
             logger.trace("Enqueued {} TCP Message to write", msg);
             boolean enqueueMessage = this.ioTcpWriteRunnable.enqueueMessage(msg);
             logger.trace("Message Enqueued {}", enqueueMessage);
+        }
+        else
+        {
+            logger.trace("IoTcpWrite is null");
         }
     }
 
@@ -180,6 +215,9 @@ final class IoClientConnectionImpl<MessageType> implements
                     int id = ((ConnectionIdMessage.ResponseMessage) message).getId();
                     this.setConnectionId(id);
                     logger.trace("Got Id from server {}", this.getConnectionId());
+
+                    //fire client connected event
+                    this.client.onClientConnected();
                 }
                 else
                 {
@@ -232,5 +270,18 @@ final class IoClientConnectionImpl<MessageType> implements
     public void removeConnectionEventListener(ConnectionEvent listener)
     {
         this.connectionEventListeners.remove(listener);
+    }
+
+    class RunnableEventListenerImpl implements RunnableEventListener
+    {
+        private RunnableEventListenerImpl()
+        {
+        }
+
+        @Override
+        public void onRunnableClosed()
+        {
+            IoClientConnectionImpl.this.close();
+        }
     }
 }

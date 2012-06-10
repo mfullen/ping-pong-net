@@ -12,8 +12,11 @@ import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.Envelope;
+import ping.pong.net.connection.EnvelopeFactory;
+import ping.pong.net.connection.MessageListener;
 import ping.pong.net.connection.messages.ConnectionIdMessage;
 import ping.pong.net.connection.messages.ConnectionIdMessage.ResponseMessage;
+import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerExceptionHandler;
 
 /**
@@ -147,7 +150,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 {
                     final Connection ioServerConnection = new IoServerConnectionImpl<MessageType>(configuration, acceptingSocket, udpServerSocket);
                     ioServerConnection.setConnectionId(this.server.getNextAvailableId());
-                    ioServerConnection.addConnectionEventListener(new ConnectionEvent()
+                    ioServerConnection.addConnectionEventListener(new ConnectionEvent<MessageType>()
                     {
                         @Override
                         public void onSocketClosed()
@@ -166,22 +169,17 @@ final class ServerConnectionManager<MessageType> implements Runnable
                         @Override
                         public void onSocketCreated()
                         {
-                            ioServerConnection.sendMessage(new Envelope<ConnectionIdMessage.ResponseMessage>()
-                            {
-                                @Override
-                                public boolean isReliable()
-                                {
-                                    return true;
-                                }
-
-                                @Override
-                                public ResponseMessage getMessage()
-                                {
-                                    ResponseMessage responseMessage = new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId());
-                                    return responseMessage;
-                                }
-                            });
+                            ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
                             logger.debug("OnSocketCreated");
+                        }
+
+                        @Override
+                        public void onSocketReceivedMessage(MessageType message)
+                        {
+                            for (MessageListener<Connection<MessageType>, MessageType> messageListener : server.messageListeners)
+                            {
+                                messageListener.messageReceived(ioServerConnection, message);
+                            }
                         }
                     });
                     ((IoServerConnectionImpl) ioServerConnection).fireOnSocketCreated();

@@ -7,6 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.RunnableEventListener;
 
 /**
  * IoTcpWriteRunnable Write a message to the output stream of a TCP socket
@@ -34,10 +35,15 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
      * The queue of messages to write from
      */
     protected BlockingQueue<MessageType> writeQueue = new LinkedBlockingQueue<MessageType>();
+    /**
+     * Notifies the listener when this runnable is closed
+     */
+    protected RunnableEventListener runnableEventListener = null;
 
-    public IoTcpWriteRunnable(Socket tcpSocket)
+    public IoTcpWriteRunnable(RunnableEventListener runnableEventListener, Socket tcpSocket)
     {
         this.tcpSocket = tcpSocket;
+        this.runnableEventListener = runnableEventListener;
     }
 
     /**
@@ -47,7 +53,7 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
     {
         try
         {
-            this.outputStream = new ObjectOutputStream(tcpSocket.getOutputStream());
+            this.outputStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
             this.outputStream.flush();
         }
         catch (IOException ex)
@@ -85,6 +91,14 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
         catch (IOException ex)
         {
             logger.error("Error closing Socket", ex);
+        }
+        finally
+        {
+            if (this.runnableEventListener != null)
+            {
+                this.runnableEventListener.onRunnableClosed();
+                this.runnableEventListener = null;
+            }
         }
     }
 

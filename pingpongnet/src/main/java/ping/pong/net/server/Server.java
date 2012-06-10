@@ -2,6 +2,7 @@ package ping.pong.net.server;
 
 import java.util.Collection;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.Envelope;
 import ping.pong.net.connection.MessageListener;
 
 /**
@@ -14,7 +15,7 @@ public interface Server<Message>
      * Broadcast Message to all connected clients
      * @param message the message to broadcast
      */
-    void broadcast(Message message);
+    void broadcast(Envelope<Message> message);
 
     /**
      * Start the server. Upon being started, clients should be able to connect

@@ -30,4 +30,10 @@ public class DefaultEnvelope<Message> implements Envelope<Message>
     {
         return message;
     }
+
+    @Override
+    public String toString()
+    {
+        return "DefaultEnvelope{" + "reliable=" + reliable + ", message=" + message + '}';
+    }
 }

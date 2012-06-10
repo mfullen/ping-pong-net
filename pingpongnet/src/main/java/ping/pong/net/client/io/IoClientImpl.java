@@ -198,5 +198,9 @@ public final class IoClientImpl<Message> implements Client<Message>
         {
             this.connection.sendMessage(message);
         }
+        else
+        {
+            logger.error("Cannot Send message, The client is not connected");
+        }
     }
 }
