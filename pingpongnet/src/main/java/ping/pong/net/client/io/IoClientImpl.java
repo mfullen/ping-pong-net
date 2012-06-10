@@ -7,11 +7,11 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionConfiguration;
-import ping.pong.net.connection.ConnectionFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.DisconnectInfo;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageListener;
 
 /**
  * The Io Client Implementation of the Client interface.
@@ -46,7 +46,7 @@ public final class IoClientImpl<Message> implements Client<Message>
      */
     public IoClientImpl()
     {
-        this(ConnectionFactory.createConnectionConfiguration());
+        this(ConnectionConfigFactory.createConnectionConfiguration());
     }
 
     /**

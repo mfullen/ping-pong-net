@@ -1,5 +1,10 @@
 package ping.pong.net.client.io;
 
+import ping.pong.net.connection.messaging.MessageProcessor;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.io.IoTcpReadRunnable;
+import ping.pong.net.connection.io.IoTcpWriteRunnable;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -12,7 +17,7 @@ import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.*;
-import ping.pong.net.connection.messages.ConnectionIdMessage;
+import ping.pong.net.connection.messaging.ConnectionIdMessage;
 
 /**
  * Connection Implementation for Io.

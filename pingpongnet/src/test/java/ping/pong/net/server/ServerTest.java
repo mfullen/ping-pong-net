@@ -11,7 +11,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.io.IoServerImpl;
 
 /**

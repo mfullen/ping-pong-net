@@ -1,4 +1,4 @@
-package ping.pong.net.connection.messages;
+package ping.pong.net.connection.messaging;
 
 import java.io.Serializable;
 

@@ -1,4 +1,4 @@
-package ping.pong.net.connection;
+package ping.pong.net.connection.config;
 
 import java.io.File;
 import java.net.URISyntaxException;

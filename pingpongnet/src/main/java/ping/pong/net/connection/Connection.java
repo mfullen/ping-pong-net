@@ -1,5 +1,9 @@
 package ping.pong.net.connection;
 
+import ping.pong.net.connection.messaging.MessageSender;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.messaging.Envelope;
+
 /**
  * A Connection interface represent what an Active connection between sockets is.
  * @author mfullen

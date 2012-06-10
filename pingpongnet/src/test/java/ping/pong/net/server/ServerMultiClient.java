@@ -5,17 +5,17 @@ import java.util.TimerTask;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.io.IoClientImpl;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionFactory;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.EnvelopeFactory;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.EnvelopeFactory;
+import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.io.IoServerImpl;
 
 public class ServerMultiClient
 {
     public static void main(String[] args)
     {
-        final IoServerImpl<String> server = new IoServerImpl<String>(ConnectionFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
+        final IoServerImpl<String> server = new IoServerImpl<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override

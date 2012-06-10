@@ -1,4 +1,4 @@
-package ping.pong.net.connection;
+package ping.pong.net.connection.config;
 
 /**
  *

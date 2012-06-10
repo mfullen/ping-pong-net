@@ -1,7 +1,7 @@
 package ping.pong.net;
 
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.Envelope;
+import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerConnectionListener;
 import ping.pong.net.server.io.IoServerImpl;

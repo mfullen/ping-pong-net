@@ -6,8 +6,8 @@ package ping.pong.net.server;
 
 import java.util.Collection;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageListener;
 
 /**
  *

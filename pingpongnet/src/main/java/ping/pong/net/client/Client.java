@@ -1,8 +1,8 @@
 package ping.pong.net.client;
 
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageListener;
-import ping.pong.net.connection.MessageSender;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageListener;
+import ping.pong.net.connection.messaging.MessageSender;
 
 /**
  *

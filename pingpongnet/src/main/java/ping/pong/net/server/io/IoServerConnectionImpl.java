@@ -10,13 +10,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import ping.pong.net.client.io.IoTcpReadRunnable;
-import ping.pong.net.client.io.IoTcpWriteRunnable;
+import ping.pong.net.connection.io.IoTcpReadRunnable;
+import ping.pong.net.connection.io.IoTcpWriteRunnable;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionConfiguration;
+import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionEvent;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageProcessor;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageProcessor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

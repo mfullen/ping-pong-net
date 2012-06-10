@@ -20,8 +20,8 @@ import javax.net.ssl.SSLSocketFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import ping.pong.net.connection.ConnectionConfiguration;
-import ping.pong.net.connection.ConnectionFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
 import static org.junit.Assert.*;
 
 /**
@@ -50,7 +50,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testShutdown()
     {
-        ServerConnectionManager instance = new ServerConnectionManager(ConnectionFactory.createConnectionConfiguration(), new IoServerImpl());
+        ServerConnectionManager instance = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration(), new IoServerImpl());
         assertNull(instance.tcpServerSocket);
         assertNull(instance.udpServerSocket);
         //assertNotNull(instance.executorService);
@@ -64,7 +64,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testShutdownWithNotNulLSockets() throws IOException
     {
-        ServerConnectionManager instance = new ServerConnectionManager(ConnectionFactory.createConnectionConfiguration("localhost", 20111, 20112, false), new IoServerImpl());
+        ServerConnectionManager instance = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration("localhost", 20111, 20112, false), new IoServerImpl());
         instance.tcpServerSocket = ServerSocketFactory.getDefault().createServerSocket();
         instance.udpServerSocket = new DatagramSocket(instance.configuration.getUdpPort());
         assertNotNull(instance.tcpServerSocket);
@@ -78,7 +78,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testIsListening()
     {
-        ServerConnectionManager instance = new ServerConnectionManager(ConnectionFactory.createConnectionConfiguration(), new IoServerImpl());
+        ServerConnectionManager instance = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration(), new IoServerImpl());
         assertTrue(instance.isListening());
         instance.shutdown();
         assertFalse(instance.isListening());
@@ -87,7 +87,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testRunSSL()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 4011, 4012, true);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 4011, 4012, true);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServerImpl(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();
@@ -99,7 +99,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testRunCreateUDPSocketError() throws IOException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 7011, 7012, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 7011, 7012, false);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServerImpl(createConnectionConfiguration));
         instance.tcpServerSocket = ServerSocketFactory.getDefault().createServerSocket(7011);
         instance.udpServerSocket = new DatagramSocket(instance.configuration.getUdpPort());
@@ -112,7 +112,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testRunAcceptedSocket() throws IOException, InterruptedException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 6011, 6012, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 6011, 6012, false);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServerImpl(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();
@@ -138,7 +138,7 @@ public class ServerConnectionManagerTest
                                                   CertificateException,
                                                   KeyManagementException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionFactory.createConnectionConfiguration("localhost", 8011, 8012, true);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 8011, 8012, true);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServerImpl(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();

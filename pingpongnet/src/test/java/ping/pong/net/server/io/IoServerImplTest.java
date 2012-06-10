@@ -1,5 +1,9 @@
 package ping.pong.net.server.io;
 
+import ping.pong.net.connection.messaging.MessageListener;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.messaging.Envelope;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -133,7 +137,7 @@ public class IoServerImplTest
         IoServerImpl instance = new IoServerImpl();
         assertFalse(instance.isListening());
         assertNull(instance.serverConnectionManager);
-        instance.serverConnectionManager = new ServerConnectionManager(ConnectionFactory.createConnectionConfiguration(), instance);
+        instance.serverConnectionManager = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration(), instance);
         assertNotNull(instance.serverConnectionManager);
         //assertFalse(instance.isListening());
         instance.start();
@@ -211,7 +215,7 @@ public class IoServerImplTest
     {
         IoServerImpl instance = new IoServerImpl();
         assertFalse(instance.isListening());
-        instance.serverConnectionManager = new ServerConnectionManager(ConnectionFactory.createConnectionConfiguration(), instance);
+        instance.serverConnectionManager = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration(), instance);
         instance.serverConnectionManager.listening = false;
         assertFalse(instance.isListening());
     }

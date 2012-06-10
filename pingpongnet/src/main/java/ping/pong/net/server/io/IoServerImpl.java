@@ -9,10 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionConfiguration;
-import ping.pong.net.connection.ConnectionFactory;
-import ping.pong.net.connection.Envelope;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerConnectionListener;
 
@@ -33,7 +33,7 @@ public final class IoServerImpl<MessageType> implements
 
     public IoServerImpl()
     {
-        this(ConnectionFactory.createConnectionConfiguration());
+        this(ConnectionConfigFactory.createConnectionConfiguration());
     }
 
     public IoServerImpl(ConnectionConfiguration config)

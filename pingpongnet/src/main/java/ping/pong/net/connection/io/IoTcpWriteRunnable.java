@@ -1,4 +1,4 @@
-package ping.pong.net.client.io;
+package ping.pong.net.connection.io;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;

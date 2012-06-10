@@ -1,9 +1,9 @@
-package ping.pong.net.client.io;
+package ping.pong.net.connection.io;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import ping.pong.net.connection.MessageProcessor;
+import ping.pong.net.connection.messaging.MessageProcessor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

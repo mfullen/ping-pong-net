@@ -7,8 +7,8 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.UnknownHostException;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionFactory;
-import ping.pong.net.connection.Envelope;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.messaging.Envelope;
 
 /**
  *
@@ -20,10 +20,10 @@ public class ServerExample
                                                   IOException,
                                                   InterruptedException
     {
-        //Server<String> server = new DefaultIoServerConnection<String>(ConnectionFactory.createConnectionConfiguration(), new Socket("localhost", 5011), null);
+        //Server<String> server = new DefaultIoServerConnection<String>(ConnectionConfigFactory.createConnectionConfiguration(), new Socket("localhost", 5011), null);
         //Server<Envelope<String>> server = new IoServerImpl<String>();
         //IoServerImpl<String> server = new IoServerImpl<String>();
-        IoServerImpl<String> server = new IoServerImpl<String>(ConnectionFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
+        IoServerImpl<String> server = new IoServerImpl<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override

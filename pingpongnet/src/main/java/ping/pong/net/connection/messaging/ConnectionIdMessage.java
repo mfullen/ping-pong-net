@@ -1,4 +1,4 @@
-package ping.pong.net.connection.messages;
+package ping.pong.net.connection.messaging;
 
 public final class ConnectionIdMessage implements AbstractMessage
 {

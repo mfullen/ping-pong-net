@@ -1,16 +1,11 @@
-package ping.pong.net.connection;
+package ping.pong.net.connection.config;
 
 /**
  *
  * @author mfullen
  */
-public final class ConnectionFactory
+public final class ConnectionConfigFactory
 {
-//    public static Connection<? extends Envelope> createDefaultIOServerConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
-//    {
-//        return new DefaultIoServerConnection(config, tcpSocket, udpSocket);
-//    }
-
     public static ConnectionConfiguration createConnectionConfiguration(String ip, int tcpPort, int udpPort, boolean ssl)
     {
         return new DefaultConnectionConfiguration(tcpPort, udpPort, ip, ssl);

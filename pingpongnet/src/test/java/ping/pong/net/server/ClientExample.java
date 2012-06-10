@@ -24,9 +24,9 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.io.IoClientImpl;
-import ping.pong.net.connection.ConnectionConfiguration;
-import ping.pong.net.connection.ConnectionFactory;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.messaging.MessageListener;
 
 /**
  *
@@ -176,7 +176,7 @@ public class ClientExample
 
     public static void clientApiConnect() throws InterruptedException
     {
-        IoClientImpl<String> client = new IoClientImpl<String>(ConnectionFactory.createConnectionConfiguration());
+        IoClientImpl<String> client = new IoClientImpl<String>(ConnectionConfigFactory.createConnectionConfiguration());
         client.addMessageListener(new MessageListener<Client, String>()
         {
             @Override

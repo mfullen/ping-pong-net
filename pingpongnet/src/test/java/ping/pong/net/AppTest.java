@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.BeforeClass;
 import static org.junit.Assert.*;
 import ping.pong.net.client.ClientConnectionListener;
-import ping.pong.net.connection.MessageListener;
+import ping.pong.net.connection.messaging.MessageListener;
 
 /**
  *
