@@ -1,6 +1,6 @@
 package ping.pong.net.server;
 
-import ping.pong.net.server.io.IoServerImpl;
+import ping.pong.net.server.io.IoServer;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -21,9 +21,9 @@ public class ServerExample
                                                   InterruptedException
     {
         //Server<String> server = new DefaultIoServerConnection<String>(ConnectionConfigFactory.createConnectionConfiguration(), new Socket("localhost", 5011), null);
-        //Server<Envelope<String>> server = new IoServerImpl<String>();
-        //IoServerImpl<String> server = new IoServerImpl<String>();
-        IoServerImpl<String> server = new IoServerImpl<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
+        //Server<Envelope<String>> server = new IoServer<String>();
+        //IoServerImpl<String> server = new IoServer<String>();
+        IoServer<String> server = new IoServer<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override

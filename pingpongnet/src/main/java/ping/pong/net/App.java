@@ -4,7 +4,7 @@ import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerConnectionListener;
-import ping.pong.net.server.io.IoServerImpl;
+import ping.pong.net.server.io.IoServer;
 
 /**
  * Hello world!
@@ -14,7 +14,7 @@ public class App
 {
     public static void main(String[] args)
     {
-        IoServerImpl<String> server = new IoServerImpl<String>();
+        IoServer<String> server = new IoServer<String>();
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override

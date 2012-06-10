@@ -20,7 +20,7 @@ import ping.pong.net.server.ServerConnectionListener;
  */
 public class IoServerImplTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(IoServerImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(IoServer.class);
     Envelope<String> tcpMessage = new Envelope<String>()
     {
         @Override
@@ -108,12 +108,12 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of broadcast method, of class IoServerImpl.
+     * Test of broadcast method, of class IoServer.
      */
     @Test
     public void testBroadcast()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertNotNull(instance);
         assertNotNull(connection1);
         instance.addConnection(connection1);
@@ -121,12 +121,12 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of start method, of class IoServerImpl.
+     * Test of start method, of class IoServer.
      */
     @Test
     public void testStart()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         instance.start();
         assertTrue(instance.isListening());
     }
@@ -134,7 +134,7 @@ public class IoServerImplTest
     @Test
     public void testConnectionManager()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertFalse(instance.isListening());
         assertNull(instance.serverConnectionManager);
         instance.serverConnectionManager = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration(), instance);
@@ -144,12 +144,12 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of shutdown method, of class IoServerImpl.
+     * Test of shutdown method, of class IoServer.
      */
     @Test
     public void testShutdown()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         instance.shutdown();
         instance.start();
         assertTrue(instance.isListening());
@@ -158,12 +158,12 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of getConnection method, of class IoServerImpl.
+     * Test of getConnection method, of class IoServer.
      */
     @Test
     public void testGetConnection()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertNotNull(instance);
         assertNotNull(connection1);
         int id = connection1.getConnectionId();
@@ -173,36 +173,36 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of getConnections method, of class IoServerImpl.
+     * Test of getConnections method, of class IoServer.
      */
     @Test
     public void testGetConnections()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertTrue(instance.getConnections().isEmpty());
         instance.addConnection(connection1);
         assertEquals(instance.getConnections().size(), 1);
     }
 
     /**
-     * Test of hasConnections method, of class IoServerImpl.
+     * Test of hasConnections method, of class IoServer.
      */
     @Test
     public void testHasConnections()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertFalse(instance.hasConnections());
         instance.addConnection(connection1);
         assertTrue(instance.hasConnections());
     }
 
     /**
-     * Test of isListening method, of class IoServerImpl.
+     * Test of isListening method, of class IoServer.
      */
     @Test
     public void testIsListening()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertFalse(instance.isListening());
         instance.start();
         assertTrue(instance.isListening());
@@ -213,7 +213,7 @@ public class IoServerImplTest
     @Test
     public void testIsListening2()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         assertFalse(instance.isListening());
         instance.serverConnectionManager = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration(), instance);
         instance.serverConnectionManager.listening = false;
@@ -221,13 +221,13 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of addMessageListener method, of class IoServerImpl.
+     * Test of addMessageListener method, of class IoServer.
      */
     @Test
     public void testAddMessageListener()
     {
         MessageListener<? super Connection, Envelope> listener = null;
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         instance.addMessageListener(listener);
         assertEquals(0, instance.messageListeners.size());
 
@@ -246,13 +246,13 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of removeMessageListener method, of class IoServerImpl.
+     * Test of removeMessageListener method, of class IoServer.
      */
     @Test
     public void testRemoveMessageListener()
     {
         MessageListener<? super Connection, Envelope> listener = null;
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         instance.removeMessageListener(listener);
         assertEquals(0, instance.messageListeners.size());
 
@@ -273,13 +273,13 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of addConnectionListener method, of class IoServerImpl.
+     * Test of addConnectionListener method, of class IoServer.
      */
     @Test
     public void testAddConnectionListener()
     {
         ServerConnectionListener listener = null;
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         instance.addConnectionListener(listener);
         assertEquals(0, instance.connectionListeners.size());
 
@@ -305,13 +305,13 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of removeConnectionListener method, of class IoServerImpl.
+     * Test of removeConnectionListener method, of class IoServer.
      */
     @Test
     public void testRemoveConnectionListener()
     {
         ServerConnectionListener listener = null;
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         instance.removeConnectionListener(listener);
         assertEquals(0, instance.connectionListeners.size());
 
@@ -339,12 +339,12 @@ public class IoServerImplTest
     }
 
     /**
-     * Test of getNextAvailableId method, of class IoServerImpl.
+     * Test of getNextAvailableId method, of class IoServer.
      */
     @Test
     public void testGetNextAvailableId()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
 
         int result = instance.getNextAvailableId();
         assertEquals(1, result);
@@ -357,7 +357,7 @@ public class IoServerImplTest
     @Test
     public void testRemoveConnection()
     {
-        IoServerImpl instance = new IoServerImpl();
+        IoServer instance = new IoServer();
         ServerConnectionListener listener = new ServerConnectionListener()
         {
             @Override

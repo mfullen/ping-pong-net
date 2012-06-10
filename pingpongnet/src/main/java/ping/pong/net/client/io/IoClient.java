@@ -1,12 +1,18 @@
 package ping.pong.net.client.io;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.DisconnectInfo;
@@ -17,12 +23,12 @@ import ping.pong.net.connection.messaging.MessageListener;
  * The Io Client Implementation of the Client interface.
  * @author mfullen
  */
-public final class IoClientImpl<Message> implements Client<Message>
+public final class IoClient<Message> implements Client<Message>
 {
     /**
      * The logger being user for this class
      */
-    public static final Logger logger = LoggerFactory.getLogger(IoClientImpl.class);
+    public static final Logger logger = LoggerFactory.getLogger(IoClient.class);
     /**
      * The Connection for the Client
      */
@@ -44,7 +50,7 @@ public final class IoClientImpl<Message> implements Client<Message>
      * Constructor for a default IoClient Implementation. Creates it based of
      * defaults for a Connection Configuration
      */
-    public IoClientImpl()
+    public IoClient()
     {
         this(ConnectionConfigFactory.createConnectionConfiguration());
     }
@@ -53,10 +59,9 @@ public final class IoClientImpl<Message> implements Client<Message>
      * Creates a Client Implementation based off the given ConnectionConfiguration
      * @param config the configuration to use
      */
-    public IoClientImpl(ConnectionConfiguration config)
+    public IoClient(ConnectionConfiguration config)
     {
         this.config = config;
-        this.connection = new IoClientConnectionImpl<Message>(this, config);
     }
 
     @Override
@@ -64,9 +69,64 @@ public final class IoClientImpl<Message> implements Client<Message>
     {
         if (this.connection == null)
         {
-            logger.error("Connection is null");
+            logger.error("Connection is null, Creating new connection");
+            SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
+            try
+            {
+                Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
+                // this.connection = new IoClientConnectionImpl<Message>(this, config);
+                this.connection = new ClientIoConnection<Message>(config, tcpSocket, null);
+                this.connection.addConnectionEventListener(new ConnectionEvent<Message>()
+                {
+                    @Override
+                    public void onSocketClosed()
+                    {
+                        for (ClientConnectionListener clientConnectionListener : connectionListeners)
+                        {
+                            clientConnectionListener.clientDisconnected(IoClient.this, new DisconnectInfo()
+                            {
+                                @Override
+                                public String getReason()
+                                {
+                                    return "some thing is wrong";
+                                }
+
+                                @Override
+                                public DisconnectState getDisconnectState()
+                                {
+                                    return DisconnectState.ERROR;
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onSocketCreated()
+                    {
+                        for (ClientConnectionListener clientConnectionListener : connectionListeners)
+                        {
+                            clientConnectionListener.clientConnected(IoClient.this);
+                        }
+                    }
+
+                    @Override
+                    public synchronized void onSocketReceivedMessage(Message message)
+                    {
+                        for (MessageListener<? super Client<Message>, Message> messageListener : messageListeners)
+                        {
+                            messageListener.messageReceived(IoClient.this, message);
+                        }
+                    }
+                });
+            }
+            catch (IOException ex)
+            {
+                logger.error("Error creating Client Socket", ex);
+            }
+
+
         }
-        else if (this.connection.isConnected())
+        if (this.connection.isConnected())
         {
             logger.warn("Can't start connection it is already running");
         }

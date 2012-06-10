@@ -11,12 +11,10 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionEvent;
-import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.io.AbstractIoConnection;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.connection.messaging.ConnectionIdMessage;
-import ping.pong.net.connection.messaging.ConnectionIdMessage.ResponseMessage;
-import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerExceptionHandler;
 
 /**
@@ -30,9 +28,9 @@ final class ServerConnectionManager<MessageType> implements Runnable
     protected ConnectionConfiguration configuration;
     protected ServerSocket tcpServerSocket = null;
     protected DatagramSocket udpServerSocket = null;
-    protected IoServerImpl<MessageType> server = null;
+    protected IoServer<MessageType> server = null;
 
-    public ServerConnectionManager(ConnectionConfiguration configuration, IoServerImpl<MessageType> server)
+    public ServerConnectionManager(ConnectionConfiguration configuration, IoServer<MessageType> server)
     {
         this.configuration = configuration;
         this.server = server;
@@ -148,7 +146,8 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 if (acceptingSocket != null)
                 {
-                    final Connection ioServerConnection = new IoServerConnectionImpl<MessageType>(configuration, acceptingSocket, udpServerSocket);
+                    //final Connection ioServerConnection = new IoServerConnectionImpl<MessageType>(configuration, acceptingSocket, udpServerSocket);
+                    final Connection ioServerConnection = new ServerIoConnection<MessageType>(configuration, acceptingSocket, udpServerSocket);
                     ioServerConnection.setConnectionId(this.server.getNextAvailableId());
                     ioServerConnection.addConnectionEventListener(new ConnectionEvent<MessageType>()
                     {
@@ -182,7 +181,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
                             }
                         }
                     });
-                    ((IoServerConnectionImpl) ioServerConnection).fireOnSocketCreated();
+                    ((ServerIoConnection) ioServerConnection).fireOnSocketCreated();
                     Thread cThread = new Thread(ioServerConnection, "Connection: " + ioServerConnection.getConnectionId());
                     cThread.setDaemon(true);
                     cThread.start();

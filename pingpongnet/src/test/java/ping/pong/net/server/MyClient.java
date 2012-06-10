@@ -2,7 +2,7 @@ package ping.pong.net.server;
 
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
-import ping.pong.net.client.io.IoClientImpl;
+import ping.pong.net.client.io.IoClient;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.DisconnectInfo;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
@@ -20,7 +20,7 @@ public class MyClient
     {
         for (int i = 0; i < 5; i++)
         {
-            IoClientImpl<String> client = new IoClientImpl<String>(ConnectionConfigFactory.createConnectionConfiguration());
+            IoClient<String> client = new IoClient<String>(ConnectionConfigFactory.createConnectionConfiguration());
             client.addMessageListener(new MessageListener<Client, String>()
             {
                 @Override
@@ -38,7 +38,7 @@ public class MyClient
 
     public static void runOneClient() throws InterruptedException
     {
-        IoClientImpl<String> client = new IoClientImpl<String>(ConnectionConfigFactory.createConnectionConfiguration());
+        IoClient<String> client = new IoClient<String>(ConnectionConfigFactory.createConnectionConfiguration());
         client.addMessageListener(new MessageListener<Client, String>()
         {
             @Override

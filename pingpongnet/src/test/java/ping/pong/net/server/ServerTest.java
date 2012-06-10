@@ -12,7 +12,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.messaging.MessageListener;
-import ping.pong.net.server.io.IoServerImpl;
+import ping.pong.net.server.io.IoServer;
 
 /**
  *
@@ -55,7 +55,7 @@ public class ServerTest
     public void serverTcpReadAndWrite() throws UnknownHostException, IOException,
                                                InterruptedException
     {
-        Server server = new IoServerImpl();
+        Server server = new IoServer();
         server.addConnectionListener(new ServerConnectionListener()
         {
             int count = 0;
@@ -123,7 +123,7 @@ public class ServerTest
     @Ignore // we arent really suppose to use these as unit tests, they are more example cases
     public void serverStartUpAndShutDown() throws InterruptedException
     {
-        Server server = new IoServerImpl();
+        Server server = new IoServer();
         server.addConnectionListener(new ServerConnectionListener()
         {
             int count = 0;

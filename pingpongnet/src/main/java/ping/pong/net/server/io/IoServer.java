@@ -20,10 +20,10 @@ import ping.pong.net.server.ServerConnectionListener;
  *
  * @author mfullen
  */
-public final class IoServerImpl<MessageType> implements
+public final class IoServer<MessageType> implements
         Server<MessageType>
 {
-    public static final Logger logger = LoggerFactory.getLogger(IoServerImpl.class);
+    public static final Logger logger = LoggerFactory.getLogger(IoServer.class);
     private static final String CANT_ADD_LISTENER = "You must add Listeners before the server is started";
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
     protected ServerConnectionManager<MessageType> serverConnectionManager = null;
@@ -31,12 +31,12 @@ public final class IoServerImpl<MessageType> implements
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
     protected List<ServerConnectionListener> connectionListeners = new ArrayList<ServerConnectionListener>();
 
-    public IoServerImpl()
+    public IoServer()
     {
         this(ConnectionConfigFactory.createConnectionConfiguration());
     }
 
-    public IoServerImpl(ConnectionConfiguration config)
+    public IoServer(ConnectionConfiguration config)
     {
         this.config = config;
     }

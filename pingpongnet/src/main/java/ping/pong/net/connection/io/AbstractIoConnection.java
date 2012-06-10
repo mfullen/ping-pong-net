@@ -1,44 +1,39 @@
-package ping.pong.net.client.io;
+package ping.pong.net.connection.io;
 
-import ping.pong.net.connection.messaging.MessageProcessor;
-import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.messaging.Envelope;
-import ping.pong.net.connection.io.IoTcpReadRunnable;
-import ping.pong.net.connection.io.IoTcpWriteRunnable;
-import java.io.IOException;
+import java.net.DatagramSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ping.pong.net.connection.*;
-import ping.pong.net.connection.messaging.ConnectionIdMessage;
+import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.RunnableEventListener;
+import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageProcessor;
 
 /**
- * Connection Implementation for Io.
+ *
  * @author mfullen
  */
-final class IoClientConnectionImpl<MessageType> implements
+public abstract class AbstractIoConnection<MessageType> implements
         Connection<MessageType>,
         MessageProcessor<MessageType>
 {
     /**
      * The logger to use in the class
      */
-    public static final Logger logger = LoggerFactory.getLogger(IoClientConnectionImpl.class);
+    public static final Logger logger = LoggerFactory.getLogger(AbstractIoConnection.class);
     /**
      * The ConnectionConfiguration this connection is using
      */
     protected ConnectionConfiguration config = null;
-    /**
-     * The Client reference this connection is using
-     */
-    protected IoClientImpl<MessageType> client = null;
     /**
      * Flag for whether this connection is actually connected to a socket
      */
@@ -63,39 +58,85 @@ final class IoClientConnectionImpl<MessageType> implements
      * This connections queue of received messages to process
      */
     private BlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
+    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+    protected DatagramSocket udpSocket = null;
+    protected Socket tcpSocket = null;
+    protected RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
 
-    /**
-     * Constructor for the Client Implementation
-     * @param client The client the connection is created from
-     * @param config the configuration to use in initiating the client
-     */
-    public IoClientConnectionImpl(IoClientImpl<MessageType> client, ConnectionConfiguration config)
+    public AbstractIoConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
         this.config = config;
-        this.client = client;
+        this.tcpSocket = tcpSocket;
+        this.udpSocket = udpSocket;
+        this.initTcp();
     }
 
     /**
      * Method to initialize a TCP connection. Creates read and Write threads for TCP
      * @return true if the initiation is a success, false otherwise.
      */
-    protected boolean initTcp()
+    protected final boolean initTcp()
     {
         boolean successful = false;
-        try
-        {
-            SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
-            Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
-            RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
-            this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, tcpSocket);
-            this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, tcpSocket);
-            successful = true;
-        }
-        catch (IOException ex)
-        {
-            logger.error("Error Creating socket", ex);
-        }
+
+        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, tcpSocket);
+        this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, tcpSocket);
+
+        successful = true;
+
         return successful;
+    }
+
+    protected abstract void processMessage(MessageType message);
+
+    protected synchronized void fireOnSocketCreated()
+    {
+        for (ConnectionEvent connectionEvent : connectionEventListeners)
+        {
+            connectionEvent.onSocketCreated();
+        }
+    }
+
+    protected synchronized void fireOnSocketMessageReceived(MessageType message)
+    {
+        for (ConnectionEvent<MessageType> connectionEvent : connectionEventListeners)
+        {
+            connectionEvent.onSocketReceivedMessage(message);
+        }
+    }
+
+    @Override
+    public void run()
+    {
+
+        this.executorService.execute(ioTcpWriteRunnable);
+        this.executorService.execute(ioTcpReadRunnable);
+        this.connected = true;
+
+        while (this.isConnected())
+        {
+            try
+            {
+                logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
+                MessageType message = this.receiveQueue.take();
+
+                logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
+                this.processMessage(message);
+            }
+            catch (InterruptedException ex)
+            {
+                logger.error("Error processing Receive Message queue", ex);
+            }
+        }
+
+        //Connection is done, try to properly close and cleanup
+        logger.info("{} Main thread calling close", getConnectionName());
+        this.close();
+    }
+
+    private String getConnectionName()
+    {
+        return "Connection (" + this.getConnectionId() + "):";
     }
 
     protected boolean isAnyRunning()
@@ -104,7 +145,7 @@ final class IoClientConnectionImpl<MessageType> implements
     }
 
     @Override
-    public void close()
+    public synchronized void close()
     {
         if (this.ioTcpReadRunnable == null || this.ioTcpWriteRunnable == null)
         {
@@ -112,22 +153,13 @@ final class IoClientConnectionImpl<MessageType> implements
             return;
         }
 
+        this.connected = false;
         if (this.isAnyRunning())
         {
-            this.client.onClientDisconnected(new DisconnectInfo()
+            for (ConnectionEvent connectionEvent : this.connectionEventListeners)
             {
-                @Override
-                public String getReason()
-                {
-                    return "The close method was called";
-                }
-
-                @Override
-                public DisconnectState getDisconnectState()
-                {
-                    return DisconnectState.ERROR;
-                }
-            });
+                connectionEvent.onSocketClosed();
+            }
         }
 
         if (this.ioTcpWriteRunnable.isRunning())
@@ -147,15 +179,15 @@ final class IoClientConnectionImpl<MessageType> implements
     }
 
     @Override
-    public int getConnectionId()
+    public synchronized int getConnectionId()
     {
         return this.connectionId;
     }
 
     @Override
-    public synchronized void setConnectionId(int id)
+    public synchronized void setConnectionId(int connectionId)
     {
-        this.connectionId = id;
+        this.connectionId = connectionId;
     }
 
     @Override
@@ -189,54 +221,6 @@ final class IoClientConnectionImpl<MessageType> implements
         {
             logger.trace("IoTcpWrite is null");
         }
-    }
-
-    @Override
-    public void run()
-    {
-        boolean initTcp = this.initTcp();
-        if (initTcp)
-        {
-            Thread tcpreadThread = new Thread(this.ioTcpReadRunnable, "IoTcpReadThread");
-            tcpreadThread.setDaemon(true);
-            tcpreadThread.start();
-
-            Thread tcpWriteThread = new Thread(this.ioTcpWriteRunnable, "IoTcpWriteThread");
-            tcpWriteThread.setDaemon(true);
-            tcpWriteThread.start();
-
-            this.connected = true;
-        }
-
-        while (this.isConnected())
-        {
-            try
-            {
-                logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
-                MessageType message = this.receiveQueue.take();
-
-                if (message instanceof ConnectionIdMessage.ResponseMessage)
-                {
-                    int id = ((ConnectionIdMessage.ResponseMessage) message).getId();
-                    this.setConnectionId(id);
-                    logger.trace("Got Id from server {}", this.getConnectionId());
-
-                    //fire client connected event
-                    this.client.onClientConnected();
-                }
-                else
-                {
-                    logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
-                    this.client.handleMessageReceived(message);
-                }
-            }
-            catch (InterruptedException ex)
-            {
-                logger.error("Error processing Receive Message queue", ex);
-            }
-        }
-        logger.info("Client Connection thread ended.");
-        this.close();
     }
 
     @Override
@@ -286,7 +270,7 @@ final class IoClientConnectionImpl<MessageType> implements
         @Override
         public void onRunnableClosed()
         {
-            IoClientConnectionImpl.this.close();
+            AbstractIoConnection.this.close();
         }
     }
 }

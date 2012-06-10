@@ -2,20 +2,17 @@ package ping.pong.net.server;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import ping.pong.net.client.Client;
-import ping.pong.net.client.io.IoClientImpl;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.messaging.Envelope;
-import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
-import ping.pong.net.server.io.IoServerImpl;
+import ping.pong.net.server.io.IoServer;
 
 public class ServerMultiClient
 {
     public static void main(String[] args)
     {
-        final IoServerImpl<String> server = new IoServerImpl<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
+        final IoServer<String> server = new IoServer<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override
@@ -43,7 +40,7 @@ public class ServerMultiClient
 
         server.start();
 
-        boolean heartBeat = false;
+        boolean heartBeat = true;
 
         if (heartBeat)
         {
