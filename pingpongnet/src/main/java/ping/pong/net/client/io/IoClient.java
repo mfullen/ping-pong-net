@@ -28,7 +28,11 @@ public final class IoClient<Message> implements Client<Message>
     /**
      * The logger being user for this class
      */
-    public static final Logger logger = LoggerFactory.getLogger(IoClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(IoClient.class);
+    /**
+     * Invalid connection id
+     */
+    private static final int INVALID_CONNECTION_ID = -1;
     /**
      * The Connection for the Client
      */
@@ -69,7 +73,7 @@ public final class IoClient<Message> implements Client<Message>
     {
         if (this.connection == null)
         {
-            logger.error("Connection is null, Creating new connection");
+            logger.warn("Connection is null, Creating new connection");
             SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
             try
             {
@@ -88,7 +92,7 @@ public final class IoClient<Message> implements Client<Message>
                                 @Override
                                 public String getReason()
                                 {
-                                    return "some thing is wrong";
+                                    return "something is wrong";
                                 }
 
                                 @Override
@@ -123,8 +127,6 @@ public final class IoClient<Message> implements Client<Message>
             {
                 logger.error("Error creating Client Socket", ex);
             }
-
-
         }
         if (this.connection.isConnected())
         {
@@ -148,6 +150,7 @@ public final class IoClient<Message> implements Client<Message>
         }
         this.connection.close();
         logger.info("Client Closed");
+        this.connection = null;
     }
 
     @Override
@@ -163,44 +166,7 @@ public final class IoClient<Message> implements Client<Message>
         {
             return this.connection.getConnectionId();
         }
-        return -1;
-    }
-
-    /**
-     * Package Private method which handles message received from internal classes
-     * and passes the message through the message listeners
-     * @param message the message to pass on to the message listeners
-     */
-    synchronized void handleMessageReceived(Message message)
-    {
-        for (MessageListener<? super Client<Message>, Message> messageListener : messageListeners)
-        {
-            messageListener.messageReceived(this, message);
-        }
-    }
-
-    /**
-     * Package Private method which handles client connected from internal classes
-     * and passes the message through the connection listeners
-     */
-    synchronized void onClientConnected()
-    {
-        for (ClientConnectionListener clientConnectionListener : connectionListeners)
-        {
-            clientConnectionListener.clientConnected(this);
-        }
-    }
-
-    /**
-     * Package Private method which handles client disconnected from internal classes
-     * @param disconnectInfo The disconnect information associated with the disconnect
-     */
-    synchronized void onClientDisconnected(DisconnectInfo disconnectInfo)
-    {
-        for (ClientConnectionListener clientConnectionListener : connectionListeners)
-        {
-            clientConnectionListener.clientDisconnected(this, disconnectInfo);
-        }
+        return INVALID_CONNECTION_ID;
     }
 
     @Override
@@ -252,7 +218,7 @@ public final class IoClient<Message> implements Client<Message>
     {
         if (this.connection == null)
         {
-            logger.error("Connection is null");
+            logger.error("Connection is null. Please start the connection first and try again");
         }
         else if (this.connection.isConnected())
         {
@@ -260,7 +226,7 @@ public final class IoClient<Message> implements Client<Message>
         }
         else
         {
-            logger.error("Cannot Send message, The client is not connected");
+            logger.warn("Cannot Send message, The client is not connected");
         }
     }
 }

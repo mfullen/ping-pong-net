@@ -122,7 +122,8 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
         logger.trace("About to write Object to Stream {}", message);
         this.outputStream.writeObject(message);
         this.outputStream.flush();
-        logger.trace("Wrote {} to and flushed Outputstream", message);
+        logger.trace("Wrote {} to stream", message);
+        logger.trace("Flushed Outputstream");
     }
 
     @Override

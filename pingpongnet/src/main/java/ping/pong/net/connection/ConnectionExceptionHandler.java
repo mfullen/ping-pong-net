@@ -1,4 +1,4 @@
-package ping.pong.net.server;
+package ping.pong.net.connection;
 
 /*
  * To change this template, choose Tools | Templates
@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author mfullen
  */
-public class ServerExceptionHandler
+public class ConnectionExceptionHandler
 {
-    public static final Logger logger = LoggerFactory.getLogger(ServerExceptionHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionExceptionHandler.class);
 
     /**
      *
@@ -50,7 +50,7 @@ public class ServerExceptionHandler
             }
             else if (ex.getMessage().contains("Connection reset"))
             {
-                logger.error("Connection reset: Client Closed Connection foricibly.", ex);
+                logger.debug("Connection reset: Closed Connection foricibly.");
             }
             else if (ex.getMessage().contains("socket closed"))
             {

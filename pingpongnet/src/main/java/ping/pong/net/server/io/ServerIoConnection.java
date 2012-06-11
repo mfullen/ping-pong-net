@@ -4,6 +4,7 @@ import java.net.DatagramSocket;
 import java.net.Socket;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoConnection;
+import ping.pong.net.connection.messaging.DisconnectMessage;
 
 /**
  *
@@ -19,7 +20,14 @@ public final class ServerIoConnection<MessageType> extends AbstractIoConnection<
     @Override
     protected void processMessage(MessageType message)
     {
-        this.fireOnSocketMessageReceived(message);
+        if (message instanceof DisconnectMessage)
+        {
+            this.connected = false;
+        }
+        else
+        {
+            this.fireOnSocketMessageReceived(message);
+        }
     }
 
     @Override

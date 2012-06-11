@@ -13,7 +13,7 @@ public class MyClient
     public static void main(String[] args) throws InterruptedException
     {
         runOneClient();
-        // runMulitClients();
+        runMulitClients();
     }
 
     public static void runMulitClients()

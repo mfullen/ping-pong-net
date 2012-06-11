@@ -11,11 +11,10 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.ConnectionEvent;
-import ping.pong.net.connection.io.AbstractIoConnection;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.connection.messaging.ConnectionIdMessage;
-import ping.pong.net.server.ServerExceptionHandler;
+import ping.pong.net.connection.ConnectionExceptionHandler;
 
 /**
  *
@@ -23,7 +22,7 @@ import ping.pong.net.server.ServerExceptionHandler;
  */
 final class ServerConnectionManager<MessageType> implements Runnable
 {
-    public static final Logger logger = LoggerFactory.getLogger(ServerConnectionManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerConnectionManager.class);
     protected boolean listening = true;
     protected ConnectionConfiguration configuration;
     protected ServerSocket tcpServerSocket = null;
@@ -110,11 +109,6 @@ final class ServerConnectionManager<MessageType> implements Runnable
             {
                 tcpServerSocket = socketFactory.createServerSocket(configuration.getPort());
                 tcpServerSocket.setReuseAddress(true);
-//                if (configuration.isSsl())
-//                {
-//                    ((SSLServerSocket) tcpServerSocket).setNeedClientAuth(true);
-//                }
-                // tcpServerSocket.bind(new InetSocketAddress(configuration.getPort()));
             }
             catch (IOException ex)
             {
@@ -141,12 +135,11 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 catch (IOException ex)
                 {
-                    ServerExceptionHandler.handleException(ex, logger);
+                    ConnectionExceptionHandler.handleException(ex, logger);
                     this.shutdown();
                 }
                 if (acceptingSocket != null)
                 {
-                    //final Connection ioServerConnection = new IoServerConnectionImpl<MessageType>(configuration, acceptingSocket, udpServerSocket);
                     final Connection ioServerConnection = new ServerIoConnection<MessageType>(configuration, acceptingSocket, udpServerSocket);
                     ioServerConnection.setConnectionId(this.server.getNextAvailableId());
                     ioServerConnection.addConnectionEventListener(new ConnectionEvent<MessageType>()
@@ -192,7 +185,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
         }
         catch (Exception exception)
         {
-            ServerExceptionHandler.handleException(exception, logger);
+            ConnectionExceptionHandler.handleException(exception, logger);
         }
         finally
         {

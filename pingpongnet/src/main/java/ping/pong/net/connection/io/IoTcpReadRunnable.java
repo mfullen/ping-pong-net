@@ -7,6 +7,7 @@ import ping.pong.net.connection.messaging.MessageProcessor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.ConnectionExceptionHandler;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
@@ -20,7 +21,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
     /**
      * Logger for IoTcpReadRunnable
      */
-    public static final Logger logger = LoggerFactory.getLogger(IoTcpReadRunnable.class);
+    private static final Logger logger = LoggerFactory.getLogger(IoTcpReadRunnable.class);
     /**
      * MessageProcessor to process the messages read
      */
@@ -88,9 +89,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
                                                       ClassNotFoundException
     {
         Object readObject = null;
-        //blocks here
         logger.trace("About to block for read Object");
-
         readObject = this.inputStream.readObject();
         logger.trace("{Read Object from Stream: {} ", readObject);
 
@@ -153,7 +152,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
             }
             catch (IOException ex)
             {
-                logger.error("TcpRecieveThread IOException", ex);
+                ConnectionExceptionHandler.handleException(ex, logger);
                 hasErrors = true;
             }
             catch (ClassNotFoundException ex)

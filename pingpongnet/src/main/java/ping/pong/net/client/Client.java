@@ -5,7 +5,7 @@ import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.connection.messaging.MessageSender;
 
 /**
- *
+ * Client interface to control a client connection
  * @author mfullen
  */
 public interface Client<Message> extends

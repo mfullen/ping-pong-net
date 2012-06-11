@@ -185,6 +185,8 @@ public final class IoServer<MessageType> implements
         logger.trace("Removing Connection ({}) to connectionmap ", connectionId);
         logger.trace("Current Connections: {}", this.getConnections());
 
+        logger.info("Connection ({}) has disconnected.", connectionId);
+
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {
             serverConnectionListener.connectionRemoved(this, connection);

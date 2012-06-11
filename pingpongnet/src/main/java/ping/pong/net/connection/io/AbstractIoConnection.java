@@ -15,11 +15,12 @@ import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.messaging.DisconnectMessage;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageProcessor;
 
 /**
- *
+ * AbstractIoConnection represents a basic Io Connection
  * @author mfullen
  */
 public abstract class AbstractIoConnection<MessageType> implements
@@ -29,7 +30,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     /**
      * The logger to use in the class
      */
-    public static final Logger logger = LoggerFactory.getLogger(AbstractIoConnection.class);
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractIoConnection.class);
     /**
      * The ConnectionConfiguration this connection is using
      */
@@ -58,10 +59,23 @@ public abstract class AbstractIoConnection<MessageType> implements
      * This connections queue of received messages to process
      */
     private BlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
+    /**
+     * The ExecutorService controls the thread pool for read and write
+     */
     private ExecutorService executorService = Executors.newFixedThreadPool(4);
+    /**
+     * The Udp Socket used for this connection
+     */
     protected DatagramSocket udpSocket = null;
+    /**
+     * The Tcp Socket used for this connection
+     */
     protected Socket tcpSocket = null;
+    /**
+     * The Runnable Event Listener used for this connection
+     */
     protected RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
+    protected boolean closed = false;
 
     public AbstractIoConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
@@ -130,7 +144,7 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
 
         //Connection is done, try to properly close and cleanup
-        logger.info("{} Main thread calling close", getConnectionName());
+        logger.debug("{} Main thread calling close", getConnectionName());
         this.close();
     }
 
@@ -160,6 +174,8 @@ public abstract class AbstractIoConnection<MessageType> implements
             {
                 connectionEvent.onSocketClosed();
             }
+
+            this.receiveQueue.add((MessageType) new DisconnectMessage());
         }
 
         if (this.ioTcpWriteRunnable.isRunning())
@@ -169,6 +185,13 @@ public abstract class AbstractIoConnection<MessageType> implements
         if (this.ioTcpReadRunnable.isRunning())
         {
             this.ioTcpReadRunnable.close();
+        }
+
+
+        if (!isAnyRunning() && !isConnected() && !this.closed)
+        {
+            logger.info("Connection ({}) has been closed", this.getConnectionId());
+            this.closed = true;
         }
     }
 
@@ -194,6 +217,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     public void sendMessage(Envelope<MessageType> message)
     {
         this.enqueueMessageToWrite(message);
+        logger.debug("Preparing to send Message {}", message);
     }
 
     /**
