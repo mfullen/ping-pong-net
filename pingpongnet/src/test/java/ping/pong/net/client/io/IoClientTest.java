@@ -4,6 +4,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.messaging.Envelope;
@@ -32,7 +33,7 @@ public class IoClientTest
     /**
      * Test of start method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testStart()
     {
         System.out.println("start");
@@ -45,7 +46,7 @@ public class IoClientTest
     /**
      * Test of close method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testClose()
     {
         System.out.println("close");
@@ -58,7 +59,7 @@ public class IoClientTest
     /**
      * Test of isConnected method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testIsConnected()
     {
         System.out.println("isConnected");
@@ -73,7 +74,7 @@ public class IoClientTest
     /**
      * Test of getId method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testGetId()
     {
         System.out.println("getId");
@@ -88,7 +89,7 @@ public class IoClientTest
     /**
      * Test of addMessageListener method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testAddMessageListener()
     {
         System.out.println("addMessageListener");
@@ -102,7 +103,7 @@ public class IoClientTest
     /**
      * Test of removeMessageListener method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testRemoveMessageListener()
     {
         System.out.println("removeMessageListener");
@@ -116,7 +117,7 @@ public class IoClientTest
     /**
      * Test of addConnectionListener method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testAddConnectionListener()
     {
         System.out.println("addConnectionListener");
@@ -130,7 +131,7 @@ public class IoClientTest
     /**
      * Test of removeConnectionListener method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testRemoveConnectionListener()
     {
         System.out.println("removeConnectionListener");
@@ -144,7 +145,7 @@ public class IoClientTest
     /**
      * Test of sendMessage method, of class IoClient.
      */
-    @Test
+    @Test @Ignore
     public void testSendMessage()
     {
         System.out.println("sendMessage");

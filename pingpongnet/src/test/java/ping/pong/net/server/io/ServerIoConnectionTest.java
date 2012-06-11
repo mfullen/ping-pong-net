@@ -7,6 +7,7 @@ import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 import static org.junit.Assert.*;
+import org.junit.Ignore;
 
 /**
  *
@@ -71,7 +72,7 @@ public class ServerIoConnectionTest
     /**
      * Test of fireOnSocketCreated method, of class ServerIoConnection.
      */
-    @Test
+    @Test @Ignore
     public void testFireOnSocketCreated()
     {
         System.out.println("fireOnSocketCreated");

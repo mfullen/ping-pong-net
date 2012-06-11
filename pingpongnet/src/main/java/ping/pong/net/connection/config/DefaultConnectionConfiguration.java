@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author mfullen
  */
-class DefaultConnectionConfiguration implements ConnectionConfiguration
+public class DefaultConnectionConfiguration implements ConnectionConfiguration
 {
     public static final Logger logger = LoggerFactory.getLogger(DefaultConnectionConfiguration.class);
 
