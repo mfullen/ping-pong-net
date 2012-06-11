@@ -18,7 +18,7 @@ import ping.pong.net.server.ServerConnectionListener;
  *
  * @author mfullen
  */
-public class IoServerImplTest
+public class IoServerTest
 {
     private static final Logger logger = LoggerFactory.getLogger(IoServer.class);
     Envelope<String> tcpMessage = new Envelope<String>()
@@ -93,7 +93,7 @@ public class IoServerImplTest
         }
     };
 
-    public IoServerImplTest()
+    public IoServerTest()
     {
     }
 
