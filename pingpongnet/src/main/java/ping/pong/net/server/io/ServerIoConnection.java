@@ -10,7 +10,7 @@ import ping.pong.net.connection.messaging.DisconnectMessage;
  *
  * @author mfullen
  */
-public final class ServerIoConnection<MessageType> extends AbstractIoConnection<MessageType>
+final class ServerIoConnection<MessageType> extends AbstractIoConnection<MessageType>
 {
     public ServerIoConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
