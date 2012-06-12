@@ -6,10 +6,6 @@ package ping.pong.net.connection.config;
  */
 public final class ConnectionConfigFactory
 {
-    private ConnectionConfigFactory()
-    {
-    }
-
     public static ConnectionConfiguration createConnectionConfiguration(String ip, int tcpPort, int udpPort, boolean ssl)
     {
         return new DefaultConnectionConfiguration(tcpPort, udpPort, ip, ssl);

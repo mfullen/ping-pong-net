@@ -11,7 +11,7 @@ import ping.pong.net.connection.messaging.DisconnectMessage;
  * Client Io Connection class. This class extends from AbstractIoConnection
  * @author mfullen
  */
-final class ClientIoConnection<MessageType> extends AbstractIoConnection<MessageType>
+public final class ClientIoConnection<MessageType> extends AbstractIoConnection<MessageType>
 {
     public ClientIoConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
     {
