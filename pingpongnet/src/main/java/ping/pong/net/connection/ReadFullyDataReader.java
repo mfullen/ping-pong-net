@@ -46,7 +46,6 @@ public class ReadFullyDataReader implements DataReader<byte[]>
         {
             logger.error("Error reading size", ex);
         }
-        System.out.println("Size: " + size);
         logger.debug("Size: {}", size);
         byte[] buffer = new byte[size];
         try

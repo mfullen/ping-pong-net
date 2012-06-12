@@ -57,7 +57,7 @@ public interface ConnectionConfiguration
      * When using JavaIo False uses DataStream readInt() for message size then ReadFully().
      * When using JavaIo False also allows for connection to Non Ping-Pong-Net servers
      */
-    void setUsingPingPongNetSerialization(boolean isPingPongServer);
+    //void setUsingPingPongNetSerialization(boolean isPingPongServer);
 
     /**
      * Is the PingPongNet Serialization being used.
@@ -66,7 +66,7 @@ public interface ConnectionConfiguration
      * When using JavaIo False also allows for connection to Non Ping-Pong-Net servers
      * @return
      */
-    boolean isUsingPingPongNetSerialization();
+    //boolean isUsingPingPongNetSerialization();
 
     /**
      * Returns true if ssl is enabled false if not

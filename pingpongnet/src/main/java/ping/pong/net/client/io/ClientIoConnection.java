@@ -2,6 +2,8 @@ package ping.pong.net.client.io;
 
 import java.net.DatagramSocket;
 import java.net.Socket;
+import ping.pong.net.connection.DataReader;
+import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoConnection;
 import ping.pong.net.connection.messaging.ConnectionIdMessage;
@@ -9,20 +11,22 @@ import ping.pong.net.connection.messaging.DisconnectMessage;
 
 /**
  * Client Io Connection class. This class extends from AbstractIoConnection
+ *
  * @author mfullen
  */
 final class ClientIoConnection<MessageType> extends AbstractIoConnection<MessageType>
 {
-    public ClientIoConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public ClientIoConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
     {
-        super(config, tcpSocket, udpSocket);
+        super(config, dataReader, dataWriter, tcpSocket, udpSocket);
     }
 
     /**
      * ProcessMessage on the client first checks if the message is of type
      * ConnectionIdMessage.ResponseMessage. ConnectionIdMessage.ResponseMessage
-     * indicates that the Connection has received an Identifier from the server and
-     * can be considered connected
+     * indicates that the Connection has received an Identifier from the server
+     * and can be considered connected
+     *
      * @param message the message being processed
      */
     @Override

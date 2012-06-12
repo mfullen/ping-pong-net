@@ -35,7 +35,7 @@ public class ServerIoConnectionTest
     @Test
     public void testProcessMessage()
     {
-        ServerIoConnection instance = new ServerIoConnection(ConnectionConfigFactory.createConnectionConfiguration(), null, null);
+        ServerIoConnection instance = new ServerIoConnection(ConnectionConfigFactory.createConnectionConfiguration(), null, null, null, null);
         instance.addConnectionEventListener(new ConnectionEvent()
         {
             @Override
@@ -72,7 +72,8 @@ public class ServerIoConnectionTest
     /**
      * Test of fireOnSocketCreated method, of class ServerIoConnection.
      */
-    @Test @Ignore
+    @Test
+    @Ignore
     public void testFireOnSocketCreated()
     {
         System.out.println("fireOnSocketCreated");

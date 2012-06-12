@@ -8,13 +8,11 @@ import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.*;
 import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.connection.messaging.ConnectionIdMessage;
-import ping.pong.net.connection.ConnectionExceptionHandler;
 
 /**
  *
@@ -28,6 +26,8 @@ final class ServerConnectionManager<MessageType> implements Runnable
     protected ServerSocket tcpServerSocket = null;
     protected DatagramSocket udpServerSocket = null;
     protected IoServer<MessageType> server = null;
+    protected DataReader customDataReader = null;
+    protected DataWriter customDataWriter = null;
 
     public ServerConnectionManager(ConnectionConfiguration configuration, IoServer<MessageType> server)
     {
@@ -140,8 +140,9 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 if (acceptingSocket != null)
                 {
-                    final Connection ioServerConnection = new ServerIoConnection<MessageType>(configuration, acceptingSocket, udpServerSocket);
+                    final Connection ioServerConnection = new ServerIoConnection<MessageType>(configuration, customDataReader, customDataWriter, acceptingSocket, udpServerSocket);
                     ioServerConnection.setConnectionId(this.server.getNextAvailableId());
+
                     ioServerConnection.addConnectionEventListener(new ConnectionEvent<MessageType>()
                     {
                         @Override
@@ -161,9 +162,10 @@ final class ServerConnectionManager<MessageType> implements Runnable
                         @Override
                         public void onSocketCreated()
                         {
-                            if (configuration.isUsingPingPongNetSerialization())
+                            if (!ioServerConnection.isUsingCustomSerialization())
                             {
                                 ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
+                                logger.debug("Using PPN Serialization, sending Id Response");
                             }
 
                             logger.debug("OnSocketCreated");
@@ -195,5 +197,15 @@ final class ServerConnectionManager<MessageType> implements Runnable
         {
             this.shutdown();
         }
+    }
+
+    public void setCustomDataReader(DataReader customDataReader)
+    {
+        this.customDataReader = customDataReader;
+    }
+
+    public void setCustomDataWriter(DataWriter customDataWriter)
+    {
+        this.customDataWriter = customDataWriter;
     }
 }

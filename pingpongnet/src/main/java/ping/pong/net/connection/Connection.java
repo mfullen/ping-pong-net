@@ -5,7 +5,9 @@ import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.Envelope;
 
 /**
- * A Connection interface represent what an Active connection between sockets is.
+ * A Connection interface represent what an Active connection between sockets
+ * is.
+ *
  * @author mfullen
  */
 public interface Connection<Message> extends
@@ -38,19 +40,24 @@ public interface Connection<Message> extends
 
     /**
      * Get the Connections Configuration used for creating the sockets
+     *
      * @return ConnectionConfiguration
      */
     ConnectionConfiguration getConnectionConfiguration();
 
     /**
      * Add a ConnectionEvent listener
+     *
      * @param listener the listener to add
      */
     void addConnectionEventListener(ConnectionEvent listener);
 
     /**
      * Remove a Connection Event listener
+     *
      * @param listener the listener to add
      */
     void removeConnectionEventListener(ConnectionEvent listener);
+
+    boolean isUsingCustomSerialization();
 }

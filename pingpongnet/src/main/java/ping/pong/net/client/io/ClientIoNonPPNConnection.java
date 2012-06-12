@@ -2,9 +2,10 @@ package ping.pong.net.client.io;
 
 import java.net.DatagramSocket;
 import java.net.Socket;
+import ping.pong.net.connection.DataReader;
+import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoConnection;
-import ping.pong.net.connection.messaging.ConnectionIdMessage;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 
 /**
@@ -13,9 +14,9 @@ import ping.pong.net.connection.messaging.DisconnectMessage;
  */
 final class ClientIoNonPPNConnection<MessageType> extends AbstractIoConnection<MessageType>
 {
-    public ClientIoNonPPNConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public ClientIoNonPPNConnection(ConnectionConfiguration config,DataReader dataReader, DataWriter dataWriter,  Socket tcpSocket, DatagramSocket udpSocket)
     {
-        super(config, tcpSocket, udpSocket);
+        super(config,dataReader,dataWriter, tcpSocket, udpSocket);
     }
 
     /**

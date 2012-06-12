@@ -13,13 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
-import ping.pong.net.connection.DataFactory;
 import ping.pong.net.connection.DataReader;
 import ping.pong.net.connection.DataWriter;
-import ping.pong.net.connection.ReadFullyDataReader;
 import ping.pong.net.connection.ReadObjectDataReader;
 import ping.pong.net.connection.RunnableEventListener;
-import ping.pong.net.connection.WriteByteArrayDataWriter;
 import ping.pong.net.connection.WriteObjectDataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.DisconnectMessage;
@@ -28,6 +25,7 @@ import ping.pong.net.connection.messaging.MessageProcessor;
 
 /**
  * AbstractIoConnection represents a basic Io Connection
+ *
  * @author mfullen
  */
 public abstract class AbstractIoConnection<MessageType> implements
@@ -78,30 +76,45 @@ public abstract class AbstractIoConnection<MessageType> implements
      * The Tcp Socket used for this connection
      */
     protected Socket tcpSocket = null;
+    protected boolean usingCustomSerialization = true;
     /**
      * The Runnable Event Listener used for this connection
      */
     protected RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
     protected boolean closed = false;
+    private DataReader dataReader = null;
+    private DataWriter dataWriter = null;
 
-    public AbstractIoConnection(ConnectionConfiguration config, Socket tcpSocket, DatagramSocket udpSocket)
+    public AbstractIoConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
     {
         this.config = config;
         this.tcpSocket = tcpSocket;
         this.udpSocket = udpSocket;
+        this.dataReader = dataReader;
+        this.dataWriter = dataWriter;
         this.initTcp();
     }
 
     /**
-     * Method to initialize a TCP connection. Creates read and Write threads for TCP
+     * Method to initialize a TCP connection. Creates read and Write threads for
+     * TCP
+     *
      * @return true if the initiation is a success, false otherwise.
      */
     protected final boolean initTcp()
     {
         boolean successful = false;
 
-        DataReader dataReader = DataFactory.createDataReader(this.config.isUsingPingPongNetSerialization());
-        DataWriter dataWriter = DataFactory.createDataWriter(this.config.isUsingPingPongNetSerialization());
+        if (this.dataReader == null)
+        {
+            dataReader = new ReadObjectDataReader();
+            this.usingCustomSerialization = false;
+        }
+        if (this.dataWriter == null)
+        {
+            dataWriter = new WriteObjectDataWriter();
+            this.usingCustomSerialization = false;
+        }
 
         this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, dataReader, tcpSocket);
         this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, dataWriter, tcpSocket);
@@ -109,6 +122,12 @@ public abstract class AbstractIoConnection<MessageType> implements
         successful = true;
 
         return successful;
+    }
+
+    @Override
+    public boolean isUsingCustomSerialization()
+    {
+        return usingCustomSerialization;
     }
 
     protected abstract void processMessage(MessageType message);
@@ -132,7 +151,6 @@ public abstract class AbstractIoConnection<MessageType> implements
     @Override
     public void run()
     {
-
         this.executorService.execute(ioTcpWriteRunnable);
         this.executorService.execute(ioTcpReadRunnable);
         this.connected = true;
@@ -232,6 +250,7 @@ public abstract class AbstractIoConnection<MessageType> implements
 
     /**
      * This method should enqueue a Message to the UDP write thread
+     *
      * @param msg the message to enqueue for sending
      */
     protected void sendUdpMessage(MessageType msg)
@@ -241,6 +260,7 @@ public abstract class AbstractIoConnection<MessageType> implements
 
     /**
      * This method enqueues a message on the TcpWrite thread for sending
+     *
      * @param msg the message to enqueue for sending
      */
     protected void sendTcpMessage(MessageType msg)

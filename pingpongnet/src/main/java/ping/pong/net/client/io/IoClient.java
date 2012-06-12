@@ -12,6 +12,8 @@ import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.DataReader;
+import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
@@ -21,6 +23,7 @@ import ping.pong.net.connection.messaging.MessageListener;
 
 /**
  * The Io Client Implementation of the Client interface.
+ *
  * @author mfullen
  */
 public final class IoClient<Message> implements Client<Message>
@@ -49,6 +52,8 @@ public final class IoClient<Message> implements Client<Message>
      * The list of ConnectionListeners for this client
      */
     protected List<ClientConnectionListener> connectionListeners = new ArrayList<ClientConnectionListener>();
+    protected DataReader customDataReader = null;
+    protected DataWriter customDataWriter = null;
 
     /**
      * Constructor for a default IoClient Implementation. Creates it based of
@@ -60,7 +65,9 @@ public final class IoClient<Message> implements Client<Message>
     }
 
     /**
-     * Creates a Client Implementation based off the given ConnectionConfiguration
+     * Creates a Client Implementation based off the given
+     * ConnectionConfiguration
+     *
      * @param config the configuration to use
      */
     public IoClient(ConnectionConfiguration config)
@@ -79,7 +86,15 @@ public final class IoClient<Message> implements Client<Message>
             {
                 Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
 
-                this.connection = config.isUsingPingPongNetSerialization() ? new ClientIoConnection<Message>(config, tcpSocket, null) : new ClientIoNonPPNConnection<Message>(config, tcpSocket, null);
+                if (this.customDataReader != null || this.customDataWriter != null)
+                {
+                    this.connection = new ClientIoNonPPNConnection<Message>(config, customDataReader, customDataWriter, tcpSocket, null);
+                }
+                else
+                {
+                    this.connection = new ClientIoConnection<Message>(config, customDataReader, customDataWriter, tcpSocket, null);
+                }
+
                 this.connection.addConnectionEventListener(new ConnectionEvent<Message>()
                 {
                     @Override
@@ -228,5 +243,15 @@ public final class IoClient<Message> implements Client<Message>
         {
             logger.warn("Cannot Send message, The client is not connected");
         }
+    }
+
+    public void setCustomDataReader(DataReader customDataReader)
+    {
+        this.customDataReader = customDataReader;
+    }
+
+    public void setCustomDataWriter(DataWriter customDataWriter)
+    {
+        this.customDataWriter = customDataWriter;
     }
 }

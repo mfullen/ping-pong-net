@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.DataReader;
+import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.messaging.Envelope;
@@ -24,12 +26,13 @@ public final class IoServer<MessageType> implements
         Server<MessageType>
 {
     public static final Logger logger = LoggerFactory.getLogger(IoServer.class);
-    private static final String CANT_ADD_LISTENER = "You must add Listeners before the server is started";
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
     protected ServerConnectionManager<MessageType> serverConnectionManager = null;
     protected ConnectionConfiguration config = null;
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
     protected List<ServerConnectionListener> connectionListeners = new ArrayList<ServerConnectionListener>();
+    protected DataReader customDataReader = null;
+    protected DataWriter customDataWriter = null;
 
     public IoServer()
     {
@@ -60,6 +63,8 @@ public final class IoServer<MessageType> implements
             return;
         }
         this.serverConnectionManager = new ServerConnectionManager(config, this);
+        this.serverConnectionManager.setCustomDataReader(customDataReader);
+        this.serverConnectionManager.setCustomDataWriter(customDataWriter);
         new Thread(this.serverConnectionManager).start();
         logger.info("Server started {} on port {}", config.getIpAddress(), config.getPort());
     }
@@ -218,5 +223,15 @@ public final class IoServer<MessageType> implements
             id++;
         }
         return id;
+    }
+
+    public void setCustomDataReader(DataReader customDataReader)
+    {
+        this.customDataReader = customDataReader;
+    }
+
+    public void setCustomDataWriter(DataWriter customDataWriter)
+    {
+        this.customDataWriter = customDataWriter;
     }
 }

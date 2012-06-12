@@ -113,18 +113,6 @@ public class ClientIoConnectionTest
             {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
-
-            @Override
-            public void setUsingPingPongNetSerialization(boolean isPingPongServer)
-            {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
-
-            @Override
-            public boolean isUsingPingPongNetSerialization()
-            {
-               return true;
-            }
         };
         Socket tcpSocket = new Socket();
         DatagramSocket updSocket = null;
@@ -136,7 +124,7 @@ public class ClientIoConnectionTest
         {
             Logger.getLogger(ClientIoConnectionTest.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ClientIoConnection instance = new ClientIoConnection(connConfig, tcpSocket, updSocket);
+        ClientIoConnection instance = new ClientIoConnection(connConfig, null, null, tcpSocket, updSocket);
         DisconnectMessage disconnectMessage = new DisconnectMessage();
         instance.processMessage(disconnectMessage);
         assertFalse(instance.isConnected());

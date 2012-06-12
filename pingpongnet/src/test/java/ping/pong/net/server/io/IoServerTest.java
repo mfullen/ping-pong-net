@@ -91,6 +91,12 @@ public class IoServerTest
         {
             throw new UnsupportedOperationException("Not supported yet.");
         }
+
+        @Override
+        public boolean isUsingCustomSerialization()
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
     };
 
     public IoServerTest()

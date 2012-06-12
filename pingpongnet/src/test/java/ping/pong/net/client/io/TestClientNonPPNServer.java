@@ -11,9 +11,7 @@ import javax.net.ServerSocketFactory;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
-import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.ConnectionExceptionHandler;
-import ping.pong.net.connection.DisconnectInfo;
+import ping.pong.net.connection.*;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
@@ -49,8 +47,10 @@ public class TestClientNonPPNServer
 
     public static void launchPPNServer()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 5111, 5666, false, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 5111, 5666, false);
         IoServer<byte[]> server = new IoServer<byte[]>(createConnectionConfiguration);
+        server.setCustomDataReader(new ReadFullyDataReader());
+        server.setCustomDataWriter(new WriteByteArrayDataWriter());
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override
@@ -137,8 +137,11 @@ public class TestClientNonPPNServer
 
     public static void launchClient()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 5111, 5666, false, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 5111, 5666, false);
         IoClient<byte[]> client = new IoClient<byte[]>(createConnectionConfiguration);
+        client.setCustomDataReader(new ReadFullyDataReader());
+        client.setCustomDataWriter(new WriteByteArrayDataWriter());
+
         client.addConnectionListener(new ClientConnectionListener()
         {
             @Override
