@@ -13,7 +13,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.DataFactory;
+import ping.pong.net.connection.DataReader;
+import ping.pong.net.connection.DataWriter;
+import ping.pong.net.connection.ReadFullyDataReader;
+import ping.pong.net.connection.ReadObjectDataReader;
 import ping.pong.net.connection.RunnableEventListener;
+import ping.pong.net.connection.WriteByteArrayDataWriter;
+import ping.pong.net.connection.WriteObjectDataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 import ping.pong.net.connection.messaging.Envelope;
@@ -50,19 +57,19 @@ public abstract class AbstractIoConnection<MessageType> implements
     /**
      * This connection's TcpReadThread
      */
-    private IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
+    protected IoTcpReadRunnable<MessageType> ioTcpReadRunnable = null;
     /**
      * This connection's TcpWriteThread
      */
-    private IoTcpWriteRunnable<MessageType> ioTcpWriteRunnable = null;
+    protected IoTcpWriteRunnable<MessageType> ioTcpWriteRunnable = null;
     /**
      * This connections queue of received messages to process
      */
-    private BlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
+    protected BlockingQueue<MessageType> receiveQueue = new LinkedBlockingQueue<MessageType>();
     /**
      * The ExecutorService controls the thread pool for read and write
      */
-    private ExecutorService executorService = Executors.newFixedThreadPool(4);
+    protected ExecutorService executorService = Executors.newFixedThreadPool(4);
     /**
      * The Udp Socket used for this connection
      */
@@ -93,8 +100,11 @@ public abstract class AbstractIoConnection<MessageType> implements
     {
         boolean successful = false;
 
-        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, tcpSocket);
-        this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, tcpSocket);
+        DataReader dataReader = DataFactory.createDataReader(this.config.isUsingPingPongNetSerialization());
+        DataWriter dataWriter = DataFactory.createDataWriter(this.config.isUsingPingPongNetSerialization());
+
+        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, dataReader, tcpSocket);
+        this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, dataWriter, tcpSocket);
 
         successful = true;
 
@@ -148,7 +158,7 @@ public abstract class AbstractIoConnection<MessageType> implements
         this.close();
     }
 
-    private String getConnectionName()
+    protected String getConnectionName()
     {
         return "Connection (" + this.getConnectionId() + "):";
     }

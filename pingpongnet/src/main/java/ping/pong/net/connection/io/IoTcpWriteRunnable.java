@@ -1,12 +1,13 @@
 package ping.pong.net.connection.io;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
@@ -26,7 +27,7 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
     /**
      * The inputstream in which the thread is reading from
      */
-    protected ObjectOutputStream outputStream = null;
+    protected OutputStream outputStream = null;
     /**
      * Flag for whether this thread is running
      */
@@ -39,11 +40,13 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
      * Notifies the listener when this runnable is closed
      */
     protected RunnableEventListener runnableEventListener = null;
+    private DataWriter dataWriter = null;
 
-    public IoTcpWriteRunnable(RunnableEventListener runnableEventListener, Socket tcpSocket)
+    public IoTcpWriteRunnable(RunnableEventListener runnableEventListener, DataWriter dataWriter, Socket tcpSocket)
     {
         this.tcpSocket = tcpSocket;
         this.runnableEventListener = runnableEventListener;
+        this.dataWriter = dataWriter;
     }
 
     /**
@@ -51,15 +54,7 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
      */
     protected void init()
     {
-        try
-        {
-            this.outputStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
-            this.outputStream.flush();
-        }
-        catch (IOException ex)
-        {
-            logger.error("Tcp Socket Init Error Error ", ex);
-        }
+        this.outputStream = dataWriter.init(this.tcpSocket);
     }
 
     /**
@@ -112,20 +107,6 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
         return this.writeQueue.add(message);
     }
 
-    /**
-     * Write and Object to the output stream
-     * @param message the message to write
-     * @throws IOException
-     */
-    protected void writeOject(MessageType message) throws IOException
-    {
-        logger.trace("About to write Object to Stream {}", message);
-        this.outputStream.writeObject(message);
-        this.outputStream.flush();
-        logger.trace("Wrote {} to stream", message);
-        logger.trace("Flushed Outputstream");
-    }
-
     @Override
     public void run()
     {
@@ -138,11 +119,7 @@ public final class IoTcpWriteRunnable<MessageType> implements Runnable
             try
             {
                 MessageType message = this.writeQueue.take();
-                this.writeOject(message);
-            }
-            catch (IOException ex)
-            {
-                logger.error("Error Writing Object", ex);
+                this.dataWriter.writeData(message);
             }
             catch (InterruptedException ex)
             {

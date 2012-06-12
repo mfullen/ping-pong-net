@@ -1,13 +1,14 @@
 package ping.pong.net.connection.io;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.InputStream;
 import java.net.Socket;
 import ping.pong.net.connection.messaging.MessageProcessor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.ConnectionExceptionHandler;
+import ping.pong.net.connection.DataReader;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
@@ -33,7 +34,7 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
     /**
      * The inputstream in which the thread is reading from
      */
-    protected ObjectInputStream inputStream = null;
+    protected InputStream inputStream = null;
     /**
      * Flag for whether this thread is running
      */
@@ -42,17 +43,19 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
      * Notifies the listener when this runnable is closed
      */
     protected RunnableEventListener runnableEventListener = null;
+    private DataReader dataReader = null;
 
     /**
      * Constructor for the Read Thread
      * @param messageProcessor The processor which handles the incoming message
      * @param tcpSocket The socket in which the message is being read from
      */
-    public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, RunnableEventListener runnableEventListener, Socket tcpSocket)
+    public IoTcpReadRunnable(MessageProcessor<MessageType> messageProcessor, RunnableEventListener runnableEventListener, DataReader dataReader, Socket tcpSocket)
     {
         this.messageProcessor = messageProcessor;
         this.tcpSocket = tcpSocket;
         this.runnableEventListener = runnableEventListener;
+        this.dataReader = dataReader;
     }
 
     /**
@@ -60,14 +63,8 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
      */
     protected void init()
     {
-        try
-        {
-            this.inputStream = new ObjectInputStream(this.tcpSocket.getInputStream());
-        }
-        catch (IOException ex)
-        {
-            logger.error("Tcp Socket Init Error Error ", ex);
-        }
+        //the data reader initializes the input stream
+        this.inputStream = dataReader.init(this.tcpSocket);
     }
 
     /**
@@ -77,23 +74,6 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
     public boolean isRunning()
     {
         return this.running;
-    }
-
-    /**
-     * Block while attempting to read Object from Stream
-     * @return return the object from the stream
-     * @throws IOException
-     * @throws ClassNotFoundException
-     */
-    protected synchronized Object readObject() throws IOException,
-                                                      ClassNotFoundException
-    {
-        Object readObject = null;
-        logger.trace("About to block for read Object");
-        readObject = this.inputStream.readObject();
-        logger.trace("{Read Object from Stream: {} ", readObject);
-
-        return readObject;
     }
 
     /**
@@ -140,7 +120,8 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
         {
             try
             {
-                Object readObject = readObject();
+                //read the data from the provided interface method
+                Object readObject = dataReader.readData();
                 if (readObject != null)
                 {
                     this.messageProcessor.enqueueReceivedMessage((MessageType) readObject);
@@ -148,16 +129,12 @@ public final class IoTcpReadRunnable<MessageType> implements Runnable
                 else
                 {
                     logger.error("Read Object is null");
+                    hasErrors = true;
                 }
             }
-            catch (IOException ex)
+            catch (Exception ex)
             {
                 ConnectionExceptionHandler.handleException(ex, logger);
-                hasErrors = true;
-            }
-            catch (ClassNotFoundException ex)
-            {
-                logger.error("TcpRecieveThread ClassnotFound", ex);
                 hasErrors = true;
             }
         }

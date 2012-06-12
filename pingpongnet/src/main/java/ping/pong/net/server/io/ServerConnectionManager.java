@@ -161,7 +161,11 @@ final class ServerConnectionManager<MessageType> implements Runnable
                         @Override
                         public void onSocketCreated()
                         {
-                            ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
+                            if (configuration.isUsingPingPongNetSerialization())
+                            {
+                                ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
+                            }
+
                             logger.debug("OnSocketCreated");
                         }
 

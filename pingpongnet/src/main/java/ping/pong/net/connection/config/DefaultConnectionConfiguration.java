@@ -69,6 +69,19 @@ public class DefaultConnectionConfiguration implements ConnectionConfiguration
     private boolean ssl;
     private String keystorePath;
     private String keystorePassword;
+    private boolean usingPingPongServer = true;
+
+    @Override
+    public boolean isUsingPingPongNetSerialization()
+    {
+        return usingPingPongServer;
+    }
+
+    @Override
+    public void setUsingPingPongNetSerialization(boolean usingPingPongServer)
+    {
+        this.usingPingPongServer = usingPingPongServer;
+    }
 
     @Override
     public String getKeystorePassword()

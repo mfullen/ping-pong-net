@@ -78,8 +78,8 @@ public final class IoClient<Message> implements Client<Message>
             try
             {
                 Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
-                // this.connection = new IoClientConnectionImpl<Message>(this, config);
-                this.connection = new ClientIoConnection<Message>(config, tcpSocket, null);
+
+                this.connection = config.isUsingPingPongNetSerialization() ? new ClientIoConnection<Message>(config, tcpSocket, null) : new ClientIoNonPPNConnection<Message>(config, tcpSocket, null);
                 this.connection.addConnectionEventListener(new ConnectionEvent<Message>()
                 {
                     @Override

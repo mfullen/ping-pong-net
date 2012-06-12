@@ -42,73 +42,98 @@ public class ClientIoConnectionTest
         System.out.println("processMessage");
         ConnectionConfiguration connConfig = new ConnectionConfiguration()
         {
-
             @Override
-            public int getPort() {
+            public int getPort()
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public void setPort(int port) {
+            public void setPort(int port)
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public int getUdpPort() {
+            public int getUdpPort()
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public void setUdpPort(int udpport) {
+            public void setUdpPort(int udpport)
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public String getIpAddress() {
+            public String getIpAddress()
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public void setIpAddress(String ipAddress) {
+            public void setIpAddress(String ipAddress)
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public boolean isSsl() {
+            public boolean isSsl()
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public void setSsl(boolean sslEnabled) {
+            public void setSsl(boolean sslEnabled)
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public String getKeystorePath() {
+            public String getKeystorePath()
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public void setKeystorePath(String keystore) {
+            public void setKeystorePath(String keystore)
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public String getKeystorePassword() {
+            public String getKeystorePassword()
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
-            public void setKeystorePassword(String password) {
+            public void setKeystorePassword(String password)
+            {
                 throw new UnsupportedOperationException("Not supported yet.");
             }
-            
+
+            @Override
+            public void setUsingPingPongNetSerialization(boolean isPingPongServer)
+            {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            @Override
+            public boolean isUsingPingPongNetSerialization()
+            {
+               return true;
+            }
         };
         Socket tcpSocket = new Socket();
         DatagramSocket updSocket = null;
-        try {
+        try
+        {
             updSocket = new DatagramSocket();
-        } catch (SocketException ex) {
+        }
+        catch (SocketException ex)
+        {
             Logger.getLogger(ClientIoConnectionTest.class.getName()).log(Level.SEVERE, null, ex);
         }
         ClientIoConnection instance = new ClientIoConnection(connConfig, tcpSocket, updSocket);
