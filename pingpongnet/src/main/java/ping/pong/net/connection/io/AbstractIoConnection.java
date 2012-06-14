@@ -13,8 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
-import ping.pong.net.connection.DataReader;
-import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.DisconnectMessage;

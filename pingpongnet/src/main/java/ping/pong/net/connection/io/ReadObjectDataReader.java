@@ -7,7 +7,6 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.ConnectionExceptionHandler;
-import ping.pong.net.connection.DataReader;
 
 /**
  *

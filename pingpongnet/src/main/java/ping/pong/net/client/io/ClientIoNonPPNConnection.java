@@ -2,8 +2,8 @@ package ping.pong.net.client.io;
 
 import java.net.DatagramSocket;
 import java.net.Socket;
-import ping.pong.net.connection.DataReader;
-import ping.pong.net.connection.DataWriter;
+import ping.pong.net.connection.io.DataReader;
+import ping.pong.net.connection.io.DataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoConnection;
 import ping.pong.net.connection.messaging.DisconnectMessage;

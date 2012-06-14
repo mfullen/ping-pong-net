@@ -7,7 +7,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ping.pong.net.connection.DataWriter;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**

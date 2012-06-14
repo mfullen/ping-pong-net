@@ -1,4 +1,4 @@
-package ping.pong.net.connection;
+package ping.pong.net.connection.io;
 
 import java.io.OutputStream;
 import java.net.Socket;

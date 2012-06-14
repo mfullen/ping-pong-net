@@ -8,7 +8,6 @@ import ping.pong.net.connection.messaging.MessageProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.ConnectionExceptionHandler;
-import ping.pong.net.connection.DataReader;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
