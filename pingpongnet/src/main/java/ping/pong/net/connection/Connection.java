@@ -59,5 +59,9 @@ public interface Connection<Message> extends
      */
     void removeConnectionEventListener(ConnectionEvent listener);
 
+    /**
+     * Flag for whether the connection is using Custom Serialization or the Default
+     * @return true for custom reader/writer false for default
+     */
     boolean isUsingCustomSerialization();
 }

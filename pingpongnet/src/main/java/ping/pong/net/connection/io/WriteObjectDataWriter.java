@@ -1,27 +1,28 @@
-package ping.pong.net.connection;
+package ping.pong.net.connection.io;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.DataWriter;
 
 /**
  *
  * @author mfullen
  */
-public class WriteByteArrayDataWriter implements DataWriter<byte[]>
+public class WriteObjectDataWriter implements DataWriter<Object>
 {
-    private DataOutputStream outputStream = null;
-    private static Logger logger = LoggerFactory.getLogger(WriteByteArrayDataWriter.class);
+    private ObjectOutputStream outputStream = null;
+    private static Logger logger = LoggerFactory.getLogger(WriteObjectDataWriter.class);
 
     @Override
     public OutputStream init(Socket socket)
     {
         try
         {
-            this.outputStream = new DataOutputStream(socket.getOutputStream());
+            this.outputStream = new ObjectOutputStream(socket.getOutputStream());
             this.outputStream.flush();
         }
         catch (IOException ex)
@@ -32,14 +33,12 @@ public class WriteByteArrayDataWriter implements DataWriter<byte[]>
     }
 
     @Override
-    public void writeData(byte[] data)
+    public void writeData(Object data)
     {
         try
         {
             logger.trace("About to write Object to Stream {}", data);
-            this.outputStream.writeInt(data.length);
-            this.outputStream.flush();
-            this.outputStream.write(data);
+            this.outputStream.writeObject(data);
             this.outputStream.flush();
             logger.trace("Wrote {} to stream", data);
             logger.trace("Flushed Outputstream");

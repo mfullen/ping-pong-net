@@ -225,11 +225,19 @@ public final class IoServer<MessageType> implements
         return id;
     }
 
+    /**
+     * Set the custom Data Reader used to read messages from a TCP socket
+     * @param customDataReader the reader to set
+     */
     public void setCustomDataReader(DataReader customDataReader)
     {
         this.customDataReader = customDataReader;
     }
 
+    /**
+     * Set the custom Data writer used to write messages to a TCP socket
+     * @param customDataWriter
+     */
     public void setCustomDataWriter(DataWriter customDataWriter)
     {
         this.customDataWriter = customDataWriter;

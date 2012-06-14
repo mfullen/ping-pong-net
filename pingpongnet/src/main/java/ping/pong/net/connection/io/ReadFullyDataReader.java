@@ -1,4 +1,4 @@
-package ping.pong.net.connection;
+package ping.pong.net.connection.io;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.DataReader;
 
 /**
  *

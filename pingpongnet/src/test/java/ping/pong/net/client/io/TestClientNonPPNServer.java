@@ -1,5 +1,7 @@
 package ping.pong.net.client.io;
 
+import ping.pong.net.connection.io.WriteByteArrayDataWriter;
+import ping.pong.net.connection.io.ReadFullyDataReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;

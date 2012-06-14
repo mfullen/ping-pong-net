@@ -52,7 +52,13 @@ public final class IoClient<Message> implements Client<Message>
      * The list of ConnectionListeners for this client
      */
     protected List<ClientConnectionListener> connectionListeners = new ArrayList<ClientConnectionListener>();
+    /**
+     * Allows for the use of a custom Data reader
+     */
     protected DataReader customDataReader = null;
+    /**
+     * The custom Data Writer to be used
+     */
     protected DataWriter customDataWriter = null;
 
     /**
@@ -86,6 +92,7 @@ public final class IoClient<Message> implements Client<Message>
             {
                 Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
 
+                //if we have a custom data reader or writer use the ClientIoNonPPNConnection
                 if (this.customDataReader != null || this.customDataWriter != null)
                 {
                     this.connection = new ClientIoNonPPNConnection<Message>(config, customDataReader, customDataWriter, tcpSocket, null);

@@ -15,9 +15,7 @@ import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.DataReader;
 import ping.pong.net.connection.DataWriter;
-import ping.pong.net.connection.ReadObjectDataReader;
 import ping.pong.net.connection.RunnableEventListener;
-import ping.pong.net.connection.WriteObjectDataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 import ping.pong.net.connection.messaging.Envelope;
@@ -81,8 +79,17 @@ public abstract class AbstractIoConnection<MessageType> implements
      * The Runnable Event Listener used for this connection
      */
     protected RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
+    /**
+     * Flag for whether the connection has been closed
+     */
     protected boolean closed = false;
+    /**
+     *  Data reader.
+     */
     private DataReader dataReader = null;
+    /**
+     *  Data Writer
+     */
     private DataWriter dataWriter = null;
 
     public AbstractIoConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
@@ -105,6 +112,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     {
         boolean successful = false;
 
+        //if the custom reader/writer are null, create default
         if (this.dataReader == null)
         {
             dataReader = new ReadObjectDataReader();
@@ -132,6 +140,9 @@ public abstract class AbstractIoConnection<MessageType> implements
 
     protected abstract void processMessage(MessageType message);
 
+    /**
+     * Fire the on socket created event for all listeners
+     */
     protected synchronized void fireOnSocketCreated()
     {
         for (ConnectionEvent connectionEvent : connectionEventListeners)
@@ -140,6 +151,10 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
     }
 
+    /**
+     * Fire the on socketMessage Received event for all listeners
+     * @param message
+     */
     protected synchronized void fireOnSocketMessageReceived(MessageType message)
     {
         for (ConnectionEvent<MessageType> connectionEvent : connectionEventListeners)
