@@ -16,7 +16,7 @@ import ping.pong.net.connection.RunnableEventListener;
  * to the MessageProcessor
  * @author mfullen
  */
-public final class IoTcpReadRunnable<MessageType> implements Runnable
+class IoTcpReadRunnable<MessageType> implements Runnable
 {
     /**
      * Logger for IoTcpReadRunnable

@@ -13,7 +13,7 @@ import ping.pong.net.connection.RunnableEventListener;
  * IoTcpWriteRunnable Write a message to the output stream of a TCP socket
  * @author mfullen
  */
-public final class IoTcpWriteRunnable<MessageType> implements Runnable
+class IoTcpWriteRunnable<MessageType> implements Runnable
 {
     /**
      * Logger for IoTcpReadRunnable

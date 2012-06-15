@@ -82,6 +82,10 @@ public abstract class AbstractIoConnection<MessageType> implements
      */
     protected boolean closed = false;
     /**
+     * Flag to let the connection know all initialization has passed and it can start
+     */
+    protected boolean canStart = true;
+    /**
      *  Data reader.
      */
     private DataReader dataReader = null;
@@ -97,7 +101,8 @@ public abstract class AbstractIoConnection<MessageType> implements
         this.udpSocket = udpSocket;
         this.dataReader = dataReader;
         this.dataWriter = dataWriter;
-        this.initTcp();
+        boolean initTcp = this.initTcp();
+        this.canStart = initTcp;
     }
 
     /**
@@ -108,24 +113,44 @@ public abstract class AbstractIoConnection<MessageType> implements
      */
     protected final boolean initTcp()
     {
-        boolean successful = false;
+        boolean successful = true;
+
 
         //if the custom reader/writer are null, create default
-        if (this.dataReader == null)
+        boolean hasDataReader = this.dataReader != null;
+        boolean hasDataWriter = this.dataWriter != null;
+
+        if (!hasDataReader && !hasDataWriter)
         {
+            this.usingCustomSerialization = false;
             dataReader = new ReadObjectDataReader();
-            this.usingCustomSerialization = false;
-        }
-        if (this.dataWriter == null)
-        {
             dataWriter = new WriteObjectDataWriter();
-            this.usingCustomSerialization = false;
+            logger.trace("Using default Serialization for TCP reader and writer");
+            successful = true;
+        }
+        else if (hasDataReader && hasDataWriter)
+        {
+            logger.trace("Using Custom serialization for Tcp reader and writer");
+            successful = true;
+        }
+        else if (hasDataReader && !hasDataWriter)
+        {
+            logger.warn("A custom DataReader was set but missing custom DataWriter");
+            successful = false;
+        }
+        else if (!hasDataReader && hasDataWriter)
+        {
+            logger.warn("A custom DataWriter was set but missing custom DataReader");
+            successful = false;
+        }
+
+        if (this.tcpSocket == null)
+        {
+            successful = false;
         }
 
         this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, dataReader, tcpSocket);
         this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, dataWriter, tcpSocket);
-
-        successful = true;
 
         return successful;
     }
@@ -161,12 +186,28 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
     }
 
+    protected synchronized void fireOnSocketClosed()
+    {
+        for (ConnectionEvent connectionEvent : this.connectionEventListeners)
+        {
+            connectionEvent.onSocketClosed();
+        }
+    }
+
     @Override
     public void run()
     {
-        this.executorService.execute(ioTcpWriteRunnable);
-        this.executorService.execute(ioTcpReadRunnable);
-        this.connected = true;
+        if (this.canStart)
+        {
+            this.executorService.execute(ioTcpWriteRunnable);
+            this.executorService.execute(ioTcpReadRunnable);
+            this.connected = true;
+            logger.trace("Connection started successfully.");
+        }
+        else
+        {
+            logger.error("This connection cannot start because it was not initialized properly.");
+        }
 
         while (this.isConnected())
         {
@@ -202,7 +243,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     @Override
     public synchronized void close()
     {
-        if (this.ioTcpReadRunnable == null || this.ioTcpWriteRunnable == null)
+        if (!this.canStart)
         {
             logger.warn("Connection cannot be closed, it never started");
             return;
@@ -211,11 +252,7 @@ public abstract class AbstractIoConnection<MessageType> implements
         this.connected = false;
         if (this.isAnyRunning())
         {
-            for (ConnectionEvent connectionEvent : this.connectionEventListeners)
-            {
-                connectionEvent.onSocketClosed();
-            }
-
+            this.fireOnSocketClosed();
             this.receiveQueue.add((MessageType) new DisconnectMessage());
         }
 
