@@ -194,8 +194,7 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
     }
 
-    @Override
-    public void run()
+    protected void startConnection()
     {
         if (this.canStart)
         {
@@ -208,6 +207,12 @@ public abstract class AbstractIoConnection<MessageType> implements
         {
             logger.error("This connection cannot start because it was not initialized properly.");
         }
+    }
+
+    @Override
+    public void run()
+    {
+        startConnection();
 
         while (this.isConnected())
         {

@@ -14,9 +14,9 @@ import ping.pong.net.connection.messaging.DisconnectMessage;
  */
 final class ClientIoNonPPNConnection<MessageType> extends AbstractIoConnection<MessageType>
 {
-    public ClientIoNonPPNConnection(ConnectionConfiguration config,DataReader dataReader, DataWriter dataWriter,  Socket tcpSocket, DatagramSocket udpSocket)
+    public ClientIoNonPPNConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
     {
-        super(config,dataReader,dataWriter, tcpSocket, udpSocket);
+        super(config, dataReader, dataWriter, tcpSocket, udpSocket);
     }
 
     /**
@@ -41,33 +41,9 @@ final class ClientIoNonPPNConnection<MessageType> extends AbstractIoConnection<M
     }
 
     @Override
-    public void run()
+    protected void startConnection()
     {
-
-        this.executorService.execute(ioTcpWriteRunnable);
-        this.executorService.execute(ioTcpReadRunnable);
-        this.connected = true;
-
+        super.startConnection();
         this.fireOnSocketCreated();
-
-        while (this.isConnected())
-        {
-            try
-            {
-                logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
-                MessageType message = this.receiveQueue.take();
-
-                logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
-                this.processMessage(message);
-            }
-            catch (InterruptedException ex)
-            {
-                logger.error("Error processing Receive Message queue", ex);
-            }
-        }
-
-        //Connection is done, try to properly close and cleanup
-        logger.debug("{} Main thread calling close", getConnectionName());
-        this.close();
     }
 }
