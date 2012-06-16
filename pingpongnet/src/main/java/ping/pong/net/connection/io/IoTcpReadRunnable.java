@@ -21,7 +21,7 @@ class IoTcpReadRunnable<MessageType> implements Runnable
     /**
      * Logger for IoTcpReadRunnable
      */
-    private static final Logger logger = LoggerFactory.getLogger(IoTcpReadRunnable.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IoTcpReadRunnable.class);
     /**
      * MessageProcessor to process the messages read
      */
@@ -96,7 +96,7 @@ class IoTcpReadRunnable<MessageType> implements Runnable
         }
         catch (IOException ex)
         {
-            logger.error("Error closing Socket", ex);
+            LOGGER.error("Error closing Socket", ex);
         }
         finally
         {
@@ -127,13 +127,13 @@ class IoTcpReadRunnable<MessageType> implements Runnable
                 }
                 else
                 {
-                    logger.error("Read Object is null");
+                    LOGGER.error("Read Object is null");
                     hasErrors = true;
                 }
             }
             catch (Exception ex)
             {
-                ConnectionExceptionHandler.handleException(ex, logger);
+                ConnectionExceptionHandler.handleException(ex, LOGGER);
                 hasErrors = true;
             }
         }

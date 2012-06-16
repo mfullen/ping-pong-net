@@ -35,7 +35,7 @@ final class ClientIoNonPPNConnection<MessageType> extends AbstractIoConnection<M
         }
         else
         {
-            logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
+            LOGGER.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
             this.fireOnSocketMessageReceived(message);
         }
     }

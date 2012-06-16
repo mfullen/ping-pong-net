@@ -25,7 +25,7 @@ import ping.pong.net.server.ServerConnectionListener;
 public class IoServer<MessageType> implements
         Server<MessageType>
 {
-    public static final Logger logger = LoggerFactory.getLogger(IoServer.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(IoServer.class);
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
     protected ServerConnectionManager<MessageType> serverConnectionManager = null;
     protected ConnectionConfiguration config = null;
@@ -50,7 +50,7 @@ public class IoServer<MessageType> implements
         for (Connection connection : this.connectionsMap.values())
         {
             connection.sendMessage(message);
-            logger.trace("Broadcasting Message: {} to Connection ({})", message, connection.getConnectionId());
+            LOGGER.trace("Broadcasting Message: {} to Connection ({})", message, connection.getConnectionId());
         }
     }
 
@@ -59,14 +59,14 @@ public class IoServer<MessageType> implements
     {
         if (serverConnectionManager != null)
         {
-            logger.error("Cannot start server. It is already running");
+            LOGGER.error("Cannot start server. It is already running");
             return;
         }
         this.serverConnectionManager = new ServerConnectionManager(config, this);
         this.serverConnectionManager.setCustomDataReader(customDataReader);
         this.serverConnectionManager.setCustomDataWriter(customDataWriter);
         new Thread(this.serverConnectionManager).start();
-        logger.info("Server started {} on port {}", config.getIpAddress(), config.getPort());
+        LOGGER.info("Server started {} on port {}", config.getIpAddress(), config.getPort());
     }
 
     @Override
@@ -74,13 +74,13 @@ public class IoServer<MessageType> implements
     {
         if (serverConnectionManager == null)
         {
-            logger.error("Server Connection Manager is null.");
+            LOGGER.error("Server Connection Manager is null.");
             return;
         }
 
         this.serverConnectionManager.shutdown();
         this.serverConnectionManager = null;
-        logger.info("Server shutdown");
+        LOGGER.info("Server shutdown");
     }
 
     @Override
@@ -89,7 +89,7 @@ public class IoServer<MessageType> implements
         Connection connection = this.connectionsMap.get(id);
         if (connection == null)
         {
-            logger.error("Connection Id {} not found.", id);
+            LOGGER.error("Connection Id {} not found.", id);
         }
         return connection;
     }
@@ -120,7 +120,7 @@ public class IoServer<MessageType> implements
         {
             added = this.messageListeners.add(listener);
         }
-        logger.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
+        LOGGER.trace("Add Message Listener: {}", added);
     }
 
     @Override
@@ -131,7 +131,7 @@ public class IoServer<MessageType> implements
         {
             removed = this.messageListeners.remove(listener);
         }
-        logger.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");
+        LOGGER.trace("Remove Message Listener: {}", removed);
     }
 
     @Override
@@ -142,7 +142,7 @@ public class IoServer<MessageType> implements
         {
             added = this.connectionListeners.add(connectionListener);
         }
-        logger.trace("Add Connection Listener: {}", added ? "Successful" : "Failure");
+        LOGGER.trace("Add Connection Listener: {}", added);
     }
 
     @Override
@@ -153,7 +153,15 @@ public class IoServer<MessageType> implements
         {
             removed = this.connectionListeners.remove(connectionListener);
         }
-        logger.trace("Remove Connection Listener: {}", removed ? "Successful" : "Failure");
+        LOGGER.trace("Remove Connection Listener: {}", removed);
+    }
+
+    private void logCurrentConnections()
+    {
+        if (LOGGER.isTraceEnabled())
+        {
+            LOGGER.trace("Current Connections: {}", this.getConnections());
+        }
     }
 
     /**
@@ -162,10 +170,10 @@ public class IoServer<MessageType> implements
      */
     synchronized void addConnection(Connection<MessageType> connection)
     {
-        logger.trace("Current Connections: {}", this.getConnections());
+        this.logCurrentConnections();
         this.connectionsMap.put(connection.getConnectionId(), connection);
-        logger.trace("Adding Connection ({}) to connectionmap ", connection.getConnectionId());
-        logger.trace("Current Connections: {}", this.getConnections());
+        LOGGER.trace("Adding Connection ({}) to connectionmap ", connection.getConnectionId());
+        this.logCurrentConnections();
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {
             serverConnectionListener.connectionAdded(this, connection);
@@ -180,17 +188,17 @@ public class IoServer<MessageType> implements
     {
         if (connection == null)
         {
-            logger.warn("Cannot remove null connection");
+            LOGGER.warn("Cannot remove null connection");
             return;
         }
 
-        logger.trace("Current Connections: {}", this.getConnections());
+        this.logCurrentConnections();
         int connectionId = connection.getConnectionId();
         this.connectionsMap.remove(connectionId);
-        logger.trace("Removing Connection ({}) to connectionmap ", connectionId);
-        logger.trace("Current Connections: {}", this.getConnections());
+        LOGGER.trace("Removing Connection ({}) to connectionmap ", connectionId);
+        this.logCurrentConnections();
 
-        logger.info("Connection ({}) has disconnected.", connectionId);
+        LOGGER.info("Connection ({}) has disconnected.", connectionId);
 
         for (ServerConnectionListener serverConnectionListener : this.connectionListeners)
         {

@@ -29,9 +29,13 @@ public abstract class AbstractIoConnection<MessageType> implements
         MessageProcessor<MessageType>
 {
     /**
-     * The logger to use in the class
+     * The LOGGER to use in the class
      */
-    protected static final Logger logger = LoggerFactory.getLogger(AbstractIoConnection.class);
+    protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractIoConnection.class);
+    /**
+     * The maximum number of threads that should be spawned per connection
+     */
+    private static final int MAX_THREAD_POOL_SIZE = 4;
     /**
      * The ConnectionConfiguration this connection is using
      */
@@ -63,7 +67,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     /**
      * The ExecutorService controls the thread pool for read and write
      */
-    protected ExecutorService executorService = Executors.newFixedThreadPool(4);
+    protected ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
     /**
      * The Udp Socket used for this connection
      */
@@ -125,22 +129,22 @@ public abstract class AbstractIoConnection<MessageType> implements
             this.usingCustomSerialization = false;
             dataReader = new ReadObjectDataReader();
             dataWriter = new WriteObjectDataWriter();
-            logger.trace("Using default Serialization for TCP reader and writer");
+            LOGGER.trace("Using default Serialization for TCP reader and writer");
             successful = true;
         }
         else if (hasDataReader && hasDataWriter)
         {
-            logger.trace("Using Custom serialization for Tcp reader and writer");
+            LOGGER.trace("Using Custom serialization for Tcp reader and writer");
             successful = true;
         }
         else if (hasDataReader && !hasDataWriter)
         {
-            logger.warn("A custom DataReader was set but missing custom DataWriter");
+            LOGGER.warn("A custom DataReader was set but missing custom DataWriter");
             successful = false;
         }
         else if (!hasDataReader && hasDataWriter)
         {
-            logger.warn("A custom DataWriter was set but missing custom DataReader");
+            LOGGER.warn("A custom DataWriter was set but missing custom DataReader");
             successful = false;
         }
 
@@ -201,11 +205,11 @@ public abstract class AbstractIoConnection<MessageType> implements
             this.executorService.execute(ioTcpWriteRunnable);
             this.executorService.execute(ioTcpReadRunnable);
             this.connected = true;
-            logger.trace("Connection started successfully.");
+            LOGGER.trace("Connection started successfully.");
         }
         else
         {
-            logger.error("This connection cannot start because it was not initialized properly.");
+            LOGGER.error("This connection cannot start because it was not initialized properly.");
         }
     }
 
@@ -218,20 +222,20 @@ public abstract class AbstractIoConnection<MessageType> implements
         {
             try
             {
-                logger.trace("({}) About to block to Take message off queue", this.getConnectionId());
+                LOGGER.trace("({}) About to block to Take message off queue", this.getConnectionId());
                 MessageType message = this.receiveQueue.take();
 
-                logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
+                LOGGER.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
                 this.processMessage(message);
             }
             catch (InterruptedException ex)
             {
-                logger.error("Error processing Receive Message queue", ex);
+                LOGGER.error("Error processing Receive Message queue", ex);
             }
         }
 
         //Connection is done, try to properly close and cleanup
-        logger.debug("{} Main thread calling close", getConnectionName());
+        LOGGER.debug("{} Main thread calling close", getConnectionName());
         this.close();
     }
 
@@ -250,7 +254,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     {
         if (!this.canStart)
         {
-            logger.warn("Connection cannot be closed, it never started");
+            LOGGER.warn("Connection cannot be closed, it never started");
             return;
         }
 
@@ -273,7 +277,7 @@ public abstract class AbstractIoConnection<MessageType> implements
 
         if (!isAnyRunning() && !isConnected() && !this.closed)
         {
-            logger.info("Connection ({}) has been closed", this.getConnectionId());
+            LOGGER.info("Connection ({}) has been closed", this.getConnectionId());
             this.closed = true;
         }
     }
@@ -300,7 +304,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     public void sendMessage(Envelope<MessageType> message)
     {
         this.enqueueMessageToWrite(message);
-        logger.debug("Preparing to send Message {}", message);
+        LOGGER.debug("Preparing to send Message {}", message);
     }
 
     /**
@@ -322,13 +326,13 @@ public abstract class AbstractIoConnection<MessageType> implements
     {
         if (this.ioTcpWriteRunnable != null)
         {
-            logger.trace("Enqueued {} TCP Message to write", msg);
+            LOGGER.trace("Enqueued {} TCP Message to write", msg);
             boolean enqueueMessage = this.ioTcpWriteRunnable.enqueueMessage(msg);
-            logger.trace("Message Enqueued {}", enqueueMessage);
+            LOGGER.trace("Message Enqueued {}", enqueueMessage);
         }
         else
         {
-            logger.trace("IoTcpWrite is null");
+            LOGGER.trace("IoTcpWrite is null");
         }
     }
 
@@ -342,7 +346,7 @@ public abstract class AbstractIoConnection<MessageType> implements
     public void enqueueReceivedMessage(MessageType message)
     {
         boolean add = this.receiveQueue.add(message);
-        logger.trace("Enqueued message {}", add);
+        LOGGER.trace("Enqueued message {}", add);
     }
 
     @Override

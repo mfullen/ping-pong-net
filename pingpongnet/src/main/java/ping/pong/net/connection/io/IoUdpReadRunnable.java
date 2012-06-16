@@ -18,7 +18,8 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
     /**
      * Logger for IoUdpReadRunnable
      */
-    private static final Logger logger = LoggerFactory.getLogger(IoUdpReadRunnable.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IoUdpReadRunnable.class);
+    private static final int RECEIVE_BUFFER_SIZE = 1024;
     /**
      * MessageProcessor to process the messages read
      */
@@ -55,7 +56,7 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
         {
             this.runnableEventListener.onRunnableClosed();
             this.runnableEventListener = null;
-            logger.debug("Udp Read Socket Closed");
+            LOGGER.debug("Udp Read Socket Closed");
         }
     }
 
@@ -73,7 +74,7 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
     {
         this.running = true;
         boolean hasErrors = false;
-        byte[] data = new byte[1024];
+        byte[] data = new byte[RECEIVE_BUFFER_SIZE];
         while (this.running && !hasErrors)
         {
             try
@@ -82,7 +83,7 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
                 udpSocket.receive(packet);
                 byte[] receivedData = packet.getData();
 
-                logger.trace("Received {} from {} on port {}", new Object[]
+                LOGGER.trace("Received {} from {} on port {}", new Object[]
                         {
                             receivedData, packet.getAddress(),
                             packet.getPort()
@@ -94,7 +95,7 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
             }
             catch (IOException ex)
             {
-                logger.error("Error receiving UDP packet", ex);
+                LOGGER.error("Error receiving UDP packet", ex);
                 hasErrors = true;
             }
         }

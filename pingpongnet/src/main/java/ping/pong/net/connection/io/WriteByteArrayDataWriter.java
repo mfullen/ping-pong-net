@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class WriteByteArrayDataWriter implements DataWriter<byte[]>
 {
     private DataOutputStream outputStream = null;
-    private static Logger logger = LoggerFactory.getLogger(WriteByteArrayDataWriter.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(WriteByteArrayDataWriter.class);
 
     @Override
     public OutputStream init(Socket socket)
@@ -26,7 +26,7 @@ public class WriteByteArrayDataWriter implements DataWriter<byte[]>
         }
         catch (IOException ex)
         {
-            logger.error("Tcp Socket Init Error Error ", ex);
+            LOGGER.error("Tcp Socket Init Error Error ", ex);
         }
         return this.outputStream;
     }
@@ -36,17 +36,17 @@ public class WriteByteArrayDataWriter implements DataWriter<byte[]>
     {
         try
         {
-            logger.trace("About to write Object to Stream {}", data);
+            LOGGER.trace("About to write Object to Stream {}", data);
             this.outputStream.writeInt(data.length);
             this.outputStream.flush();
             this.outputStream.write(data);
             this.outputStream.flush();
-            logger.trace("Wrote {} to stream", data);
-            logger.trace("Flushed Outputstream");
+            LOGGER.trace("Wrote {} to stream", data);
+            LOGGER.trace("Flushed Outputstream");
         }
         catch (IOException ex)
         {
-            logger.error("Error Writing Object", ex);
+            LOGGER.error("Error Writing Object", ex);
         }
     }
 }

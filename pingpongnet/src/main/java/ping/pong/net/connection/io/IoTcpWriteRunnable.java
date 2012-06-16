@@ -18,7 +18,7 @@ class IoTcpWriteRunnable<MessageType> implements Runnable
     /**
      * Logger for IoTcpReadRunnable
      */
-    public static final Logger logger = LoggerFactory.getLogger(IoTcpWriteRunnable.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(IoTcpWriteRunnable.class);
     /**
      * The socket the thread is reading from
      */
@@ -84,7 +84,7 @@ class IoTcpWriteRunnable<MessageType> implements Runnable
         }
         catch (IOException ex)
         {
-            logger.error("Error closing Socket", ex);
+            LOGGER.error("Error closing Socket", ex);
         }
         finally
         {
@@ -122,7 +122,7 @@ class IoTcpWriteRunnable<MessageType> implements Runnable
             }
             catch (InterruptedException ex)
             {
-                logger.error("Error with write thread", ex);
+                LOGGER.error("Error with write thread", ex);
             }
         }
     }

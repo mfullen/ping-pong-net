@@ -6,5 +6,5 @@ package ping.pong.net.connection.messaging;
  */
 public interface MessageListener<S, Message>
 {
-    public void messageReceived(S source, Message message);
+    void messageReceived(S source, Message message);
 }

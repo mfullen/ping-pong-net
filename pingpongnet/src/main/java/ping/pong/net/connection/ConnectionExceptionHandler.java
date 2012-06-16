@@ -1,9 +1,5 @@
 package ping.pong.net.connection;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 import java.io.EOFException;
 import java.net.BindException;
 import java.net.ConnectException;
@@ -18,7 +14,7 @@ import org.slf4j.Logger;
  *
  * @author mfullen
  */
-public class ConnectionExceptionHandler
+public final class ConnectionExceptionHandler
 {
     private ConnectionExceptionHandler()
     {

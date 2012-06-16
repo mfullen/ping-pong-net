@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class WriteObjectDataWriter implements DataWriter<Object>
 {
     private ObjectOutputStream outputStream = null;
-    private static Logger logger = LoggerFactory.getLogger(WriteObjectDataWriter.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(WriteObjectDataWriter.class);
 
     @Override
     public OutputStream init(Socket socket)
@@ -26,7 +26,7 @@ public class WriteObjectDataWriter implements DataWriter<Object>
         }
         catch (IOException ex)
         {
-            logger.error("Tcp Socket Init Error Error ", ex);
+            LOGGER.error("Tcp Socket Init Error Error ", ex);
         }
         return this.outputStream;
     }
@@ -36,15 +36,15 @@ public class WriteObjectDataWriter implements DataWriter<Object>
     {
         try
         {
-            logger.trace("About to write Object to Stream {}", data);
+            LOGGER.trace("About to write Object to Stream {}", data);
             this.outputStream.writeObject(data);
             this.outputStream.flush();
-            logger.trace("Wrote {} to stream", data);
-            logger.trace("Flushed Outputstream");
+            LOGGER.trace("Wrote {} to stream", data);
+            LOGGER.trace("Flushed Outputstream");
         }
         catch (IOException ex)
         {
-            logger.error("Error Writing Object", ex);
+            LOGGER.error("Error Writing Object", ex);
         }
     }
 }

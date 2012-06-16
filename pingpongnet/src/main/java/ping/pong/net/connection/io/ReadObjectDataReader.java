@@ -16,7 +16,7 @@ public class ReadObjectDataReader implements
         DataReader<Object>
 {
     private ObjectInputStream inputStream = null;
-    private static Logger logger = LoggerFactory.getLogger(ReadObjectDataReader.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(ReadObjectDataReader.class);
 
     public ReadObjectDataReader()
     {
@@ -31,7 +31,7 @@ public class ReadObjectDataReader implements
         }
         catch (IOException ex)
         {
-            logger.error("Tcp Socket Init Error Error ", ex);
+            LOGGER.error("Tcp Socket Init Error Error ", ex);
         }
         return this.inputStream;
     }
@@ -40,20 +40,20 @@ public class ReadObjectDataReader implements
     public synchronized Object readData()
     {
         Object readObject = null;
-        logger.trace("About to block for read Object");
+        LOGGER.trace("About to block for read Object");
         try
         {
             readObject = this.inputStream.readObject();
         }
         catch (IOException ex)
         {
-            ConnectionExceptionHandler.handleException(ex, logger);
+            ConnectionExceptionHandler.handleException(ex, LOGGER);
         }
         catch (ClassNotFoundException ex)
         {
-            ConnectionExceptionHandler.handleException(ex, logger);
+            ConnectionExceptionHandler.handleException(ex, LOGGER);
         }
-        logger.trace("{Read Object from Stream: {} ", readObject);
+        LOGGER.trace("{Read Object from Stream: {} ", readObject);
 
         return readObject;
     }

@@ -20,9 +20,9 @@ import ping.pong.net.connection.messaging.ConnectionIdMessage;
  *
  * @author mfullen
  */
-final class ServerConnectionManager<MessageType> implements Runnable
+class ServerConnectionManager<MessageType> implements Runnable
 {
-    private static final Logger logger = LoggerFactory.getLogger(ServerConnectionManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerConnectionManager.class);
     protected boolean listening = true;
     protected ConnectionConfiguration configuration;
     protected ServerSocket tcpServerSocket = null;
@@ -64,12 +64,12 @@ final class ServerConnectionManager<MessageType> implements Runnable
             }
             else
             {
-                logger.warn("TCP Socket is null");
+                LOGGER.warn("TCP Socket is null");
             }
         }
         catch (IOException ex)
         {
-            logger.error("Error Closing TCP socket");
+            LOGGER.error("Error Closing TCP socket");
         }
 
         if (udpServerSocket != null)
@@ -78,7 +78,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
         }
         else
         {
-            logger.warn("UDP Socket is null");
+            LOGGER.warn("UDP Socket is null");
         }
 
         this.tcpServerSocket = null;
@@ -114,7 +114,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
             }
             catch (IOException ex)
             {
-                logger.error("Error creating TCP server socket. " + ex);
+                LOGGER.error("Error creating TCP server socket. " + ex);
                 listening = false;
             }
             try
@@ -123,13 +123,13 @@ final class ServerConnectionManager<MessageType> implements Runnable
             }
             catch (Exception e)
             {
-                logger.error("Error creating UDP server socket. " + e);
+                LOGGER.error("Error creating UDP server socket. " + e);
                 listening = false;
             }
 
             while (listening)
             {
-                logger.trace("ServerConnectionManager about to block until connection accepted.");
+                LOGGER.trace("ServerConnectionManager about to block until connection accepted.");
                 Socket acceptingSocket = null;
                 try
                 {
@@ -137,7 +137,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
                 }
                 catch (IOException ex)
                 {
-                    ConnectionExceptionHandler.handleException(ex, logger);
+                    ConnectionExceptionHandler.handleException(ex, LOGGER);
                     this.shutdown();
                 }
                 if (acceptingSocket != null)
@@ -151,13 +151,13 @@ final class ServerConnectionManager<MessageType> implements Runnable
                     cThread.setDaemon(true);
                     cThread.start();
                     this.server.addConnection(ioServerConnection);
-                    logger.info("Connection {} started...", ioServerConnection.getConnectionId());
+                    LOGGER.info("Connection {} started...", ioServerConnection.getConnectionId());
                 }
             }
         }
         catch (Exception exception)
         {
-            ConnectionExceptionHandler.handleException(exception, logger);
+            ConnectionExceptionHandler.handleException(exception, LOGGER);
         }
         finally
         {
@@ -204,10 +204,10 @@ final class ServerConnectionManager<MessageType> implements Runnable
             if (!ioServerConnection.isUsingCustomSerialization())
             {
                 ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
-                logger.debug("Using PPN Serialization, sending Id Response");
+                LOGGER.debug("Using PPN Serialization, sending Id Response");
             }
 
-            logger.debug("OnSocketCreated");
+            LOGGER.debug("OnSocketCreated");
         }
 
         @Override

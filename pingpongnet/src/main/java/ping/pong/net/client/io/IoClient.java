@@ -31,7 +31,7 @@ public class IoClient<Message> implements Client<Message>
     /**
      * The logger being user for this class
      */
-    private static final Logger logger = LoggerFactory.getLogger(IoClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IoClient.class);
     /**
      * Invalid connection id
      */
@@ -91,7 +91,7 @@ public class IoClient<Message> implements Client<Message>
     {
         if (this.connection == null)
         {
-            logger.warn("Creating new connection");
+            LOGGER.warn("Creating new connection");
             try
             {
                 SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
@@ -107,7 +107,7 @@ public class IoClient<Message> implements Client<Message>
             }
             catch (IOException ex)
             {
-                logger.error("Error creating Client Socket", ex);
+                LOGGER.error("Error creating Client Socket", ex);
                 //todo add error handling to display why it couldnt connect
                 return null;
             }
@@ -122,17 +122,17 @@ public class IoClient<Message> implements Client<Message>
         this.connection = this.getConnection();
         if (this.connection == null)
         {
-            logger.error("Failed to connect to {} on port {}", this.config.getIpAddress(), this.config.getPort());
+            LOGGER.error("Failed to connect to {} on port {}", this.config.getIpAddress(), this.config.getPort());
         }
         else if (this.connection.isConnected())
         {
-            logger.warn("Can't start connection it is already running");
+            LOGGER.warn("Can't start connection it is already running");
         }
         else
         {
             Thread connectionThread = new Thread(this.connection, "IoClientConnection");
             connectionThread.start();
-            logger.info("Client connected to server {} on TCP port {}", this.config.getIpAddress(), this.config.getPort());
+            LOGGER.info("Client connected to server {} on TCP port {}", this.config.getIpAddress(), this.config.getPort());
         }
     }
 
@@ -141,11 +141,11 @@ public class IoClient<Message> implements Client<Message>
     {
         if (this.connection == null)
         {
-            logger.error("Connection is null");
+            LOGGER.error("Connection is null");
             return;
         }
         this.connection.close();
-        logger.info("Client Closed");
+        LOGGER.info("Client Closed");
         this.connection = null;
     }
 
@@ -173,7 +173,7 @@ public class IoClient<Message> implements Client<Message>
         {
             added = this.messageListeners.add(listener);
         }
-        logger.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
+        LOGGER.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
     }
 
     @Override
@@ -184,7 +184,7 @@ public class IoClient<Message> implements Client<Message>
         {
             removed = this.messageListeners.remove(listener);
         }
-        logger.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");
+        LOGGER.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");
     }
 
     @Override
@@ -195,7 +195,7 @@ public class IoClient<Message> implements Client<Message>
         {
             added = this.connectionListeners.add(listener);
         }
-        logger.trace("Add Connection Listener: {}", added ? "Successful" : "Failure");
+        LOGGER.trace("Add Connection Listener: {}", added ? "Successful" : "Failure");
     }
 
     @Override
@@ -206,7 +206,7 @@ public class IoClient<Message> implements Client<Message>
         {
             removed = this.connectionListeners.remove(listener);
         }
-        logger.trace("Remove Connection Listener: {}", removed ? "Successful" : "Failure");
+        LOGGER.trace("Remove Connection Listener: {}", removed ? "Successful" : "Failure");
     }
 
     @Override
@@ -214,7 +214,7 @@ public class IoClient<Message> implements Client<Message>
     {
         if (this.connection == null)
         {
-            logger.error("Connection is null. Please start the connection first and try again");
+            LOGGER.error("Connection is null. Please start the connection first and try again");
         }
         else if (this.connection.isConnected())
         {
@@ -222,7 +222,7 @@ public class IoClient<Message> implements Client<Message>
         }
         else
         {
-            logger.warn("Cannot Send message, The client is not connected");
+            LOGGER.warn("Cannot Send message, The client is not connected");
         }
     }
 

@@ -2,6 +2,8 @@ package ping.pong.net.connection.messaging;
 
 public final class ConnectionIdMessage implements AbstractMessage
 {
+    private static final long serialVersionUID = -5530776801634240701L;
+
     public static class RequestMessage implements AbstractMessage
     {
     }

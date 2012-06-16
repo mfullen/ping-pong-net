@@ -36,7 +36,7 @@ final class ClientIoConnection<MessageType> extends AbstractIoConnection<Message
         {
             int id = ((ConnectionIdMessage.ResponseMessage) message).getId();
             this.setConnectionId(id);
-            logger.trace("Got Id from server {}", this.getConnectionId());
+            LOGGER.trace("Got Id from server {}", this.getConnectionId());
 
             //fire client connected event
             this.fireOnSocketCreated();
@@ -47,7 +47,7 @@ final class ClientIoConnection<MessageType> extends AbstractIoConnection<Message
         }
         else
         {
-            logger.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
+            LOGGER.trace("({}) Message taken to be processed ({})", this.getConnectionId(), message);
             this.fireOnSocketMessageReceived(message);
         }
     }

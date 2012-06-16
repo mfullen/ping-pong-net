@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class ReadFullyDataReader implements DataReader<byte[]>
 {
     private DataInputStream inputStream = null;
-    private static Logger logger = LoggerFactory.getLogger(ReadFullyDataReader.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(ReadFullyDataReader.class);
 
     public ReadFullyDataReader()
     {
@@ -29,7 +29,7 @@ public class ReadFullyDataReader implements DataReader<byte[]>
         }
         catch (IOException ex)
         {
-            logger.error("Tcp Socket Init Error Error ", ex);
+            LOGGER.error("Tcp Socket Init Error Error ", ex);
         }
         return this.inputStream;
     }
@@ -44,9 +44,9 @@ public class ReadFullyDataReader implements DataReader<byte[]>
         }
         catch (IOException ex)
         {
-            logger.error("Error reading size", ex);
+            LOGGER.error("Error reading size", ex);
         }
-        logger.debug("Size: {}", size);
+        LOGGER.debug("Size: {}", size);
         byte[] buffer = new byte[size];
         try
         {
@@ -54,7 +54,7 @@ public class ReadFullyDataReader implements DataReader<byte[]>
         }
         catch (IOException ex)
         {
-            logger.error("Error reading Rest of data", ex);
+            LOGGER.error("Error reading Rest of data", ex);
         }
         return buffer;
     }
