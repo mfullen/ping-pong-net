@@ -1,11 +1,15 @@
 package ping.pong.net.connection.io;
 
 import java.io.IOException;
+import java.io.StreamCorruptedException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.ConnectionUtils;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.messaging.MessageProcessor;
 
@@ -46,11 +50,14 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
         this.running = false;
         if (this.udpSocket != null)
         {
-            synchronized (udpSocket)
-            {
-                this.udpSocket.close();
-            }
+            LOGGER.trace("attempting to close udp socket");
+            this.udpSocket.close();
         }
+        else
+        {
+            LOGGER.error("UDP SOCKET IS NULL");
+        }
+
 
         if (this.runnableEventListener != null)
         {
@@ -77,6 +84,8 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
         byte[] data = new byte[RECEIVE_BUFFER_SIZE];
         while (this.running && !hasErrors)
         {
+            MessageType messageType = null;
+            byte[] trimmedBuffer = null;
             try
             {
                 DatagramPacket packet = new DatagramPacket(data, data.length);
@@ -89,14 +98,41 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
                             packet.getPort()
                         });
 
-                byte[] trimmedBuffer = Arrays.copyOf(receivedData, packet.getLength());
+                trimmedBuffer = Arrays.copyOf(receivedData, packet.getLength());
 
-                this.messageProcessor.enqueueReceivedMessage((MessageType) trimmedBuffer);
+                //If the byte order is LittleEndian convert to BigEndian
+                ByteBuffer byteBuffer = ByteBuffer.allocate(trimmedBuffer.length);
+                LOGGER.trace("Byte order is {}", byteBuffer.order());
+                if (byteBuffer.order().equals(ByteOrder.LITTLE_ENDIAN))
+                {
+                    trimmedBuffer = byteBuffer.order(ByteOrder.BIG_ENDIAN).array();
+                    LOGGER.trace("Byte order converted to {}", ByteOrder.BIG_ENDIAN);
+                }
+
+                messageType = ConnectionUtils.<MessageType>getObject(trimmedBuffer);
+                LOGGER.trace("Message deserialized into: " + messageType);
+
+            }
+            catch (StreamCorruptedException streamCorruptedException)
+            {
+                //The received message isn't an Object so process it as normal byte[]
+                messageType = (MessageType) trimmedBuffer;
             }
             catch (IOException ex)
             {
                 LOGGER.error("Error receiving UDP packet", ex);
                 hasErrors = true;
+            }
+            catch (ClassNotFoundException ex)
+            {
+                LOGGER.error("Error converting to object");
+            }
+            finally
+            {
+                if (messageType != null)
+                {
+                    this.messageProcessor.enqueueReceivedMessage(messageType);
+                }
             }
         }
         this.close();
