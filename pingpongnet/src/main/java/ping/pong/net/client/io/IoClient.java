@@ -81,76 +81,50 @@ public final class IoClient<Message> implements Client<Message>
         this.config = config;
     }
 
-    @Override
-    public void start()
+    /**
+     * getConnection creates a new connection if one doesn't exist. Attempts to connect
+     * right away. If the connection fails to connect it returns null
+     * If a connection is already active it returns that connection
+     * @return
+     */
+    protected final Connection<Message> getConnection()
     {
         if (this.connection == null)
         {
-            logger.warn("Connection is null, Creating new connection");
-            SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
+            logger.warn("Creating new connection");
             try
             {
+                SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
                 Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
 
                 //if we have a custom data reader or writer use the ClientIoNonPPNConnection
-                if (this.customDataReader != null || this.customDataWriter != null)
-                {
-                    this.connection = new ClientIoNonPPNConnection<Message>(config, customDataReader, customDataWriter, tcpSocket, null);
-                }
-                else
-                {
-                    this.connection = new ClientIoConnection<Message>(config, customDataReader, customDataWriter, tcpSocket, null);
-                }
+                boolean customSerialization = (this.customDataReader != null || this.customDataWriter != null);
+                this.connection = customSerialization
+                        ? ClientIoConnectionFactory.<Message>createNonPPNConnection(config, customDataReader, customDataWriter, tcpSocket, null)
+                        : ClientIoConnectionFactory.<Message>createPPNConnection(config, tcpSocket, null);
 
-                this.connection.addConnectionEventListener(new ConnectionEvent<Message>()
-                {
-                    @Override
-                    public void onSocketClosed()
-                    {
-                        for (ClientConnectionListener clientConnectionListener : connectionListeners)
-                        {
-                            clientConnectionListener.clientDisconnected(IoClient.this, new DisconnectInfo()
-                            {
-                                @Override
-                                public String getReason()
-                                {
-                                    return "something is wrong";
-                                }
-
-                                @Override
-                                public DisconnectState getDisconnectState()
-                                {
-                                    return DisconnectState.ERROR;
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onSocketCreated()
-                    {
-                        for (ClientConnectionListener clientConnectionListener : connectionListeners)
-                        {
-                            clientConnectionListener.clientConnected(IoClient.this);
-                        }
-                    }
-
-                    @Override
-                    public synchronized void onSocketReceivedMessage(Message message)
-                    {
-                        for (MessageListener<? super Client<Message>, Message> messageListener : messageListeners)
-                        {
-                            messageListener.messageReceived(IoClient.this, message);
-                        }
-                    }
-                });
+                this.connection.addConnectionEventListener(new ConnectionEventImpl());
             }
             catch (IOException ex)
             {
                 logger.error("Error creating Client Socket", ex);
+                //todo add error handling to display why it couldnt connect
+                return null;
             }
         }
-        if (this.connection.isConnected())
+
+        return this.connection;
+    }
+
+    @Override
+    public void start()
+    {
+        this.connection = this.getConnection();
+        if (this.connection == null)
+        {
+            logger.error("Failed to connect to {} on port {}", this.config.getIpAddress(), this.config.getPort());
+        }
+        else if (this.connection.isConnected())
         {
             logger.warn("Can't start connection it is already running");
         }
@@ -260,5 +234,58 @@ public final class IoClient<Message> implements Client<Message>
     public void setCustomDataWriter(DataWriter customDataWriter)
     {
         this.customDataWriter = customDataWriter;
+    }
+
+    final class ConnectionEventImpl implements ConnectionEvent<Message>
+    {
+        public ConnectionEventImpl()
+        {
+        }
+
+        @Override
+        public void onSocketClosed()
+        {
+            for (ClientConnectionListener clientConnectionListener : connectionListeners)
+            {
+                clientConnectionListener.clientDisconnected(IoClient.this, new DisconnectInfoImpl());
+            }
+        }
+
+        @Override
+        public void onSocketCreated()
+        {
+            for (ClientConnectionListener clientConnectionListener : connectionListeners)
+            {
+                clientConnectionListener.clientConnected(IoClient.this);
+            }
+        }
+
+        @Override
+        public synchronized void onSocketReceivedMessage(Message message)
+        {
+            for (MessageListener<? super Client<Message>, Message> messageListener : messageListeners)
+            {
+                messageListener.messageReceived(IoClient.this, message);
+            }
+        }
+
+        final class DisconnectInfoImpl implements DisconnectInfo
+        {
+            public DisconnectInfoImpl()
+            {
+            }
+
+            @Override
+            public String getReason()
+            {
+                return "something is wrong";
+            }
+
+            @Override
+            public DisconnectState getDisconnectState()
+            {
+                return DisconnectState.ERROR;
+            }
+        }
     }
 }

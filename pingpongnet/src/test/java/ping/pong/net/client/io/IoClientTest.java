@@ -7,8 +7,15 @@ import static org.junit.Assert.*;
 import org.junit.Ignore;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
+import ping.pong.net.connection.DisconnectInfo;
+import ping.pong.net.connection.io.DataReader;
+import ping.pong.net.connection.io.DataWriter;
+import ping.pong.net.connection.io.ReadFullyDataReader;
+import ping.pong.net.connection.io.WriteByteArrayDataWriter;
 import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
+import ping.pong.net.server.io.IoServer;
 
 /**
  *
@@ -33,126 +40,338 @@ public class IoClientTest
     /**
      * Test of start method, of class IoClient.
      */
-    @Test @Ignore
-    public void testStart()
+    @Test
+    public void testStartNoServer()
     {
-        System.out.println("start");
         IoClient instance = new IoClient();
+        assertFalse(instance.isConnected());
         instance.start();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertFalse(instance.isConnected());
+    }
+
+    @Test
+    public void testStartWithServer() throws InterruptedException
+    {
+        IoServer server = new IoServer();
+        server.start();
+        final IoClient instance = new IoClient();
+        instance.addConnectionListener(new ClientConnectionListener()
+        {
+            @Override
+            public void clientConnected(Client client)
+            {
+                synchronized (IoClientTest.this)
+                {
+                    IoClientTest.this.notifyAll();
+                }
+            }
+
+            @Override
+            public void clientDisconnected(Client client, DisconnectInfo info)
+            {
+            }
+        });
+        assertFalse(instance.isConnected());
+        instance.start();
+
+        synchronized (this)
+        {
+            this.wait(100);
+        }
+        instance.start();
+        assertTrue(instance.isConnected());
+        instance.close();
+        server.shutdown();
+    }
+
+    @Test
+    public void testStartWithServerNONPPN() throws InterruptedException
+    {
+        IoServer server = new IoServer();
+        server.setCustomDataReader(new ReadFullyDataReader());
+        server.setCustomDataWriter(new WriteByteArrayDataWriter());
+        server.start();
+        final IoClient instance = new IoClient();
+        instance.setCustomDataReader(new ReadFullyDataReader());
+        instance.setCustomDataWriter(new WriteByteArrayDataWriter());
+        instance.addConnectionListener(new ClientConnectionListener()
+        {
+            @Override
+            public void clientConnected(Client client)
+            {
+                synchronized (IoClientTest.this)
+                {
+                    IoClientTest.this.notifyAll();
+                }
+            }
+
+            @Override
+            public void clientDisconnected(Client client, DisconnectInfo info)
+            {
+            }
+        });
+        assertFalse(instance.isConnected());
+        instance.start();
+
+        synchronized (this)
+        {
+            this.wait(100);
+        }
+        instance.start();
+        assertTrue(instance.isConnected());
+        instance.close();
+        //Test calling back to back close
+        instance.close();
+        server.shutdown();
     }
 
     /**
      * Test of close method, of class IoClient.
      */
-    @Test @Ignore
-    public void testClose()
+    @Test
+    public void testClose() throws InterruptedException
     {
-        System.out.println("close");
-        IoClient instance = new IoClient();
+        final IoClient instance = new IoClient();
+        IoServer server = new IoServer();
+        server.start();
+        assertFalse(instance.isConnected());
         instance.close();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        instance.addConnectionListener(new ClientConnectionListener()
+        {
+            @Override
+            public void clientConnected(Client client)
+            {
+                synchronized (IoClientTest.this)
+                {
+                    IoClientTest.this.notifyAll();
+                }
+            }
+
+            @Override
+            public void clientDisconnected(Client client, DisconnectInfo info)
+            {
+            }
+        });
+        assertFalse(instance.isConnected());
+        instance.start();
+
+        synchronized (this)
+        {
+            this.wait(10);
+        }
+        instance.start();
+        assertTrue(instance.isConnected());
+        instance.close();
+        server.shutdown();
     }
 
     /**
      * Test of isConnected method, of class IoClient.
      */
-    @Test @Ignore
+    @Test
     public void testIsConnected()
     {
-        System.out.println("isConnected");
-        IoClient instance = new IoClient();
-        boolean expResult = false;
-        boolean result = instance.isConnected();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        assertFalse(instance.isConnected());
     }
 
     /**
      * Test of getId method, of class IoClient.
      */
-    @Test @Ignore
-    public void testGetId()
+    @Test
+    public void testGetId() throws InterruptedException
     {
-        System.out.println("getId");
-        IoClient instance = new IoClient();
-        int expResult = 0;
-        int result = instance.getId();
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        assertEquals(-1, instance.getId());
+        IoServer server = new IoServer();
+        server.start();
+        assertFalse(instance.isConnected());
+        instance.addConnectionListener(new ClientConnectionListener()
+        {
+            @Override
+            public void clientConnected(Client client)
+            {
+                synchronized (IoClientTest.this)
+                {
+                    IoClientTest.this.notifyAll();
+                }
+            }
+
+            @Override
+            public void clientDisconnected(Client client, DisconnectInfo info)
+            {
+            }
+        });
+        assertFalse(instance.isConnected());
+        instance.start();
+
+        synchronized (this)
+        {
+            this.wait(300);
+        }
+        instance.start();
+        assertTrue(instance.isConnected());
+        assertEquals(1, instance.getId());
+        instance.close();
+        server.shutdown();
     }
 
     /**
      * Test of addMessageListener method, of class IoClient.
      */
-    @Test @Ignore
+    @Test
     public void testAddMessageListener()
     {
-        System.out.println("addMessageListener");
-        MessageListener listener = null;
-        IoClient instance = new IoClient();
-        instance.addMessageListener(listener);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        assertEquals(0, instance.messageListeners.size());
+        instance.addMessageListener(null);
+        assertEquals(0, instance.messageListeners.size());
+        MessageListenerImpl messageListenerImpl = new MessageListenerImpl();
+        instance.addMessageListener(messageListenerImpl);
+        assertEquals(1, instance.messageListeners.size());
     }
 
     /**
      * Test of removeMessageListener method, of class IoClient.
      */
-    @Test @Ignore
+    @Test
     public void testRemoveMessageListener()
     {
-        System.out.println("removeMessageListener");
-        MessageListener listener = null;
-        IoClient instance = new IoClient();
-        instance.removeMessageListener(listener);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        assertEquals(0, instance.messageListeners.size());
+        instance.addMessageListener(null);
+        assertEquals(0, instance.messageListeners.size());
+        MessageListenerImpl messageListenerImpl = new MessageListenerImpl();
+        instance.addMessageListener(messageListenerImpl);
+        assertEquals(1, instance.messageListeners.size());
+        instance.removeMessageListener(messageListenerImpl);
+        instance.removeMessageListener(null);
+        assertEquals(0, instance.messageListeners.size());
     }
 
     /**
      * Test of addConnectionListener method, of class IoClient.
      */
-    @Test @Ignore
+    @Test
     public void testAddConnectionListener()
     {
-        System.out.println("addConnectionListener");
-        ClientConnectionListener listener = null;
-        IoClient instance = new IoClient();
-        instance.addConnectionListener(listener);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        assertEquals(0, instance.connectionListeners.size());
+        instance.addConnectionListener(null);
+        assertEquals(0, instance.connectionListeners.size());
+        ClientConnectionListenerImpl clientConnectionListenerImpl = new ClientConnectionListenerImpl();
+        instance.addConnectionListener(clientConnectionListenerImpl);
+        assertEquals(1, instance.connectionListeners.size());
     }
 
     /**
      * Test of removeConnectionListener method, of class IoClient.
      */
-    @Test @Ignore
+    @Test
     public void testRemoveConnectionListener()
     {
-        System.out.println("removeConnectionListener");
-        ClientConnectionListener listener = null;
-        IoClient instance = new IoClient();
-        instance.removeConnectionListener(listener);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        assertEquals(0, instance.connectionListeners.size());
+        instance.addConnectionListener(null);
+        assertEquals(0, instance.connectionListeners.size());
+        ClientConnectionListenerImpl clientConnectionListenerImpl = new ClientConnectionListenerImpl();
+        instance.addConnectionListener(clientConnectionListenerImpl);
+        assertEquals(1, instance.connectionListeners.size());
+        instance.removeConnectionListener(clientConnectionListenerImpl);
+        instance.removeConnectionListener(null);
+        assertEquals(0, instance.connectionListeners.size());
     }
 
     /**
      * Test of sendMessage method, of class IoClient.
      */
-    @Test @Ignore
-    public void testSendMessage()
+    @Test
+    public void testSendMessage() throws InterruptedException
     {
-        System.out.println("sendMessage");
-        Envelope message = null;
-        IoClient instance = new IoClient();
-        instance.sendMessage(message);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        final IoClient instance = new IoClient();
+        instance.addMessageListener(new MessageListener()
+        {
+            @Override
+            public void messageReceived(Object source, Object message)
+            {
+                synchronized (IoClientTest.this)
+                {
+                    IoClientTest.this.notifyAll();
+                }
+            }
+        });
+        assertNull(instance.connection);
+        instance.sendMessage(EnvelopeFactory.createTcpEnvelope("Hello World"));
+
+        IoServer server = new IoServer();
+        server.start();
+        assertFalse(instance.isConnected());
+        instance.addConnectionListener(new ClientConnectionListener()
+        {
+            @Override
+            public void clientConnected(Client client)
+            {
+                synchronized (IoClientTest.this)
+                {
+                    IoClientTest.this.notifyAll();
+                }
+            }
+
+            @Override
+            public void clientDisconnected(Client client, DisconnectInfo info)
+            {
+            }
+        });
+        assertFalse(instance.isConnected());
+        instance.start();
+        assertNotNull(instance.connection);
+        instance.sendMessage(EnvelopeFactory.createTcpEnvelope("Hello World"));
+        synchronized (this)
+        {
+            this.wait(300);
+        }
+        instance.sendMessage(EnvelopeFactory.createTcpEnvelope("Hello World"));
+        assertTrue(instance.isConnected());
+        assertEquals(1, instance.getId());
+        server.broadcast(EnvelopeFactory.createTcpEnvelope("Hello Client"));
+        synchronized (this)
+        {
+            this.wait(10);
+        }
+        instance.close();
+        server.shutdown();
+    }
+
+    private static class MessageListenerImpl implements MessageListener
+    {
+        public MessageListenerImpl()
+        {
+        }
+
+        @Override
+        public void messageReceived(Object source, Object message)
+        {
+            fail("Not suppoed to be called");
+        }
+    }
+
+    private static class ClientConnectionListenerImpl implements
+            ClientConnectionListener
+    {
+        public ClientConnectionListenerImpl()
+        {
+        }
+
+        @Override
+        public void clientConnected(Client client)
+        {
+            fail();
+        }
+
+        @Override
+        public void clientDisconnected(Client client, DisconnectInfo info)
+        {
+            fail();
+        }
     }
 }
