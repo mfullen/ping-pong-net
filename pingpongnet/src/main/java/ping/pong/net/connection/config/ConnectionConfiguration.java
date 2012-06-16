@@ -9,11 +9,11 @@ public interface ConnectionConfiguration
     /**
      * Default Keystore name for a key on the classpath
      */
-    static final String DEFAULT_KEY_STORE = "key.ks";
+    final String DEFAULT_KEY_STORE = "key.ks";
     /**
      * Default password for the keystore
      */
-    static final String DEFAULT_KEY_STORE_PASSWORD = "pingpong123";
+    final String DEFAULT_KEY_STORE_PASSWORD = "pingpong123";
 
     /**
      * Get the port the TCP connection uses

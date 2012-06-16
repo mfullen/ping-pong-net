@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class ReadFullyDataReader implements DataReader<byte[]>
 {
     private DataInputStream inputStream = null;
-    private static Logger LOGGER = LoggerFactory.getLogger(ReadFullyDataReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadFullyDataReader.class);
 
     public ReadFullyDataReader()
     {

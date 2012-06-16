@@ -6,10 +6,12 @@ public final class ConnectionIdMessage implements AbstractMessage
 
     public static class RequestMessage implements AbstractMessage
     {
+        private static final long serialVersionUID = -8137880902144409573L;
     }
 
     public static class ResponseMessage implements AbstractMessage
     {
+        private static final long serialVersionUID = -6001062890618431909L;
         private int id = -1;
 
         public ResponseMessage()

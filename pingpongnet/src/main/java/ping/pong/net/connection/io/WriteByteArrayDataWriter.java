@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 public class WriteByteArrayDataWriter implements DataWriter<byte[]>
 {
     private DataOutputStream outputStream = null;
-    private static Logger LOGGER = LoggerFactory.getLogger(WriteByteArrayDataWriter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WriteByteArrayDataWriter.class);
 
     @Override
     public OutputStream init(Socket socket)

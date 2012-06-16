@@ -173,7 +173,7 @@ public class IoClient<Message> implements Client<Message>
         {
             added = this.messageListeners.add(listener);
         }
-        LOGGER.trace("Add Message Listener: {}", added ? "Successful" : "Failure");
+        LOGGER.trace("Add Message Listener: {}", added);
     }
 
     @Override
@@ -184,7 +184,7 @@ public class IoClient<Message> implements Client<Message>
         {
             removed = this.messageListeners.remove(listener);
         }
-        LOGGER.trace("Remove Message Listener: {}", removed ? "Successful" : "Failure");
+        LOGGER.trace("Remove Message Listener: {}", removed);
     }
 
     @Override
@@ -195,7 +195,7 @@ public class IoClient<Message> implements Client<Message>
         {
             added = this.connectionListeners.add(listener);
         }
-        LOGGER.trace("Add Connection Listener: {}", added ? "Successful" : "Failure");
+        LOGGER.trace("Add Connection Listener: {}", added);
     }
 
     @Override
@@ -206,7 +206,7 @@ public class IoClient<Message> implements Client<Message>
         {
             removed = this.connectionListeners.remove(listener);
         }
-        LOGGER.trace("Remove Connection Listener: {}", removed ? "Successful" : "Failure");
+        LOGGER.trace("Remove Connection Listener: {}", removed);
     }
 
     @Override

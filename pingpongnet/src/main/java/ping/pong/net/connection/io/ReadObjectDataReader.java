@@ -16,7 +16,7 @@ public class ReadObjectDataReader implements
         DataReader<Object>
 {
     private ObjectInputStream inputStream = null;
-    private static Logger LOGGER = LoggerFactory.getLogger(ReadObjectDataReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReadObjectDataReader.class);
 
     public ReadObjectDataReader()
     {
