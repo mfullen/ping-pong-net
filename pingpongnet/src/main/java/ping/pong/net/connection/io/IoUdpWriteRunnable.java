@@ -15,28 +15,16 @@ import ping.pong.net.connection.config.ConnectionConfiguration;
  *
  * @author mfullen
  */
-public class IoUdpWriteRunnable<MessageType> implements Runnable
+public class IoUdpWriteRunnable<MessageType> extends AbstractIoUdpRunnable
 {
     /**
      * Logger for IoUdpReadRunnable
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(IoUdpWriteRunnable.class);
     /**
-     * Flag for whether this thread is running
-     */
-    protected boolean running = false;
-    /**
      * The queue of messages to write from
      */
     protected BlockingQueue<MessageType> writeQueue = new LinkedBlockingQueue<MessageType>();
-    /**
-     * The UdpSocket to write to
-     */
-    protected DatagramSocket udpSocket = null;
-    /**
-     * Notifies the listener when this runnable is closed
-     */
-    protected RunnableEventListener runnableEventListener = null;
     /**
      * Configuration for the UDP write
      */
@@ -44,39 +32,8 @@ public class IoUdpWriteRunnable<MessageType> implements Runnable
 
     public IoUdpWriteRunnable(ConnectionConfiguration config, RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
-        this.udpSocket = udpSocket;
-        this.runnableEventListener = runnableEventListener;
+        super(runnableEventListener, udpSocket);
         this.config = config;
-    }
-
-    public void close()
-    {
-        this.running = false;
-        if (this.udpSocket != null)
-        {
-            LOGGER.trace("attempting to close udp socket");
-            this.udpSocket.close();
-        }
-        else
-        {
-            LOGGER.error("UDP SOCKET IS NULL");
-        }
-
-        if (this.runnableEventListener != null)
-        {
-            this.runnableEventListener.onRunnableClosed();
-            this.runnableEventListener = null;
-            LOGGER.debug("Udp Write Socket Closed");
-        }
-    }
-
-    /**
-     * Is this thread still running/running?
-     * @return
-     */
-    public synchronized boolean isRunning()
-    {
-        return this.running;
     }
 
     /**

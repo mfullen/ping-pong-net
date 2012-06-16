@@ -17,7 +17,7 @@ import ping.pong.net.connection.messaging.MessageProcessor;
  *
  * @author mfullen
  */
-public class IoUdpReadRunnable<MessageType> implements Runnable
+public class IoUdpReadRunnable<MessageType> extends AbstractIoUdpRunnable
 {
     /**
      * Logger for IoUdpReadRunnable
@@ -28,52 +28,11 @@ public class IoUdpReadRunnable<MessageType> implements Runnable
      * MessageProcessor to process the messages read
      */
     protected MessageProcessor<MessageType> messageProcessor = null;
-    /**
-     * Flag for whether this thread is running
-     */
-    protected boolean running = false;
-    protected DatagramSocket udpSocket = null;
-    /**
-     * Notifies the listener when this runnable is closed
-     */
-    protected RunnableEventListener runnableEventListener = null;
 
     public IoUdpReadRunnable(MessageProcessor<MessageType> messageProcessor, RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
+        super(runnableEventListener, udpSocket);
         this.messageProcessor = messageProcessor;
-        this.udpSocket = udpSocket;
-        this.runnableEventListener = runnableEventListener;
-    }
-
-    public void close()
-    {
-        this.running = false;
-        if (this.udpSocket != null)
-        {
-            LOGGER.trace("attempting to close udp socket");
-            this.udpSocket.close();
-        }
-        else
-        {
-            LOGGER.error("UDP SOCKET IS NULL");
-        }
-
-
-        if (this.runnableEventListener != null)
-        {
-            this.runnableEventListener.onRunnableClosed();
-            this.runnableEventListener = null;
-            LOGGER.debug("Udp Read Socket Closed");
-        }
-    }
-
-    /**
-     * Is this thread still running/running?
-     * @return
-     */
-    public synchronized boolean isRunning()
-    {
-        return this.running;
     }
 
     @Override
