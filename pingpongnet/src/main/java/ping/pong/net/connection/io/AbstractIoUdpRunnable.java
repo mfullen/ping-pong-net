@@ -14,7 +14,7 @@ public abstract class AbstractIoUdpRunnable implements Runnable
     /**
      * Logger for IoUdpReadRunnable
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(IoUdpWriteRunnable.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractIoUdpRunnable.class);
     /**
      * Flag for whether this thread is running
      */
