@@ -22,7 +22,7 @@ import ping.pong.net.server.ServerConnectionListener;
  *
  * @author mfullen
  */
-public final class IoServer<MessageType> implements
+public class IoServer<MessageType> implements
         Server<MessageType>
 {
     public static final Logger logger = LoggerFactory.getLogger(IoServer.class);

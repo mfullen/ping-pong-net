@@ -26,7 +26,7 @@ import ping.pong.net.connection.messaging.MessageListener;
  *
  * @author mfullen
  */
-public final class IoClient<Message> implements Client<Message>
+public class IoClient<Message> implements Client<Message>
 {
     /**
      * The logger being user for this class
