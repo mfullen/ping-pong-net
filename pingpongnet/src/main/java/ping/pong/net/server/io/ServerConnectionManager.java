@@ -145,43 +145,7 @@ final class ServerConnectionManager<MessageType> implements Runnable
                     final Connection ioServerConnection = new ServerIoConnection<MessageType>(configuration, customDataReader, customDataWriter, acceptingSocket, udpServerSocket);
                     ioServerConnection.setConnectionId(this.server.getNextAvailableId());
 
-                    ioServerConnection.addConnectionEventListener(new ConnectionEvent<MessageType>()
-                    {
-                        @Override
-                        public void onSocketClosed()
-                        {
-                            //remove the connection from the server
-                            if (server.hasConnections())
-                            {
-                                Connection connection = server.getConnection(ioServerConnection.getConnectionId());
-                                if (connection != null)
-                                {
-                                    server.removeConnection(ioServerConnection);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onSocketCreated()
-                        {
-                            if (!ioServerConnection.isUsingCustomSerialization())
-                            {
-                                ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
-                                logger.debug("Using PPN Serialization, sending Id Response");
-                            }
-
-                            logger.debug("OnSocketCreated");
-                        }
-
-                        @Override
-                        public void onSocketReceivedMessage(MessageType message)
-                        {
-                            for (MessageListener<Connection<MessageType>, MessageType> messageListener : server.messageListeners)
-                            {
-                                messageListener.messageReceived(ioServerConnection, message);
-                            }
-                        }
-                    });
+                    ioServerConnection.addConnectionEventListener(new ConnectionEventImpl(ioServerConnection));
                     ((ServerIoConnection) ioServerConnection).fireOnSocketCreated();
                     Thread cThread = new Thread(ioServerConnection, "Connection: " + ioServerConnection.getConnectionId());
                     cThread.setDaemon(true);
@@ -209,5 +173,50 @@ final class ServerConnectionManager<MessageType> implements Runnable
     public void setCustomDataWriter(DataWriter customDataWriter)
     {
         this.customDataWriter = customDataWriter;
+    }
+
+    final class ConnectionEventImpl implements ConnectionEvent<MessageType>
+    {
+        private final Connection ioServerConnection;
+
+        public ConnectionEventImpl(Connection ioServerConnection)
+        {
+            this.ioServerConnection = ioServerConnection;
+        }
+
+        @Override
+        public void onSocketClosed()
+        {
+            //remove the connection from the server
+            if (server.hasConnections())
+            {
+                Connection connection = server.getConnection(ioServerConnection.getConnectionId());
+                if (connection != null)
+                {
+                    server.removeConnection(ioServerConnection);
+                }
+            }
+        }
+
+        @Override
+        public void onSocketCreated()
+        {
+            if (!ioServerConnection.isUsingCustomSerialization())
+            {
+                ioServerConnection.sendMessage(EnvelopeFactory.createTcpEnvelope(new ConnectionIdMessage.ResponseMessage(ioServerConnection.getConnectionId())));
+                logger.debug("Using PPN Serialization, sending Id Response");
+            }
+
+            logger.debug("OnSocketCreated");
+        }
+
+        @Override
+        public void onSocketReceivedMessage(MessageType message)
+        {
+            for (MessageListener<Connection<MessageType>, MessageType> messageListener : server.messageListeners)
+            {
+                messageListener.messageReceived(ioServerConnection, message);
+            }
+        }
     }
 }

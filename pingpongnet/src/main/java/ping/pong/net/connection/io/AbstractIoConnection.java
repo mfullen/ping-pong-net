@@ -370,7 +370,7 @@ public abstract class AbstractIoConnection<MessageType> implements
         this.connectionEventListeners.remove(listener);
     }
 
-    class RunnableEventListenerImpl implements RunnableEventListener
+    final class RunnableEventListenerImpl implements RunnableEventListener
     {
         private RunnableEventListenerImpl()
         {

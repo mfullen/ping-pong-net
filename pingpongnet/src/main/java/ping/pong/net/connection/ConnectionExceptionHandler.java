@@ -13,7 +13,6 @@ import java.net.SocketException;
 
 import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -21,7 +20,9 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectionExceptionHandler
 {
-    private static final Logger logger = LoggerFactory.getLogger(ConnectionExceptionHandler.class);
+    private ConnectionExceptionHandler()
+    {
+    }
 
     /**
      *
