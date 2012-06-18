@@ -20,10 +20,10 @@ public class ServerExample
                                                   IOException,
                                                   InterruptedException
     {
-        //Server<String> server = new DefaultIoServerConnection<String>(ConnectionConfigFactory.createConnectionConfiguration(), new Socket("localhost", 5011), null);
+        //Server<String> server = new DefaultIoServerConnection<String>(ConnectionConfigFactory.createPPNConfig(), new Socket("localhost", 5011), null);
         //Server<Envelope<String>> server = new IoServer<String>();
         //IoServerImpl<String> server = new IoServer<String>();
-        IoServer<String> server = new IoServer<String>(ConnectionConfigFactory.createConnectionConfiguration("localhost", 5011, 5012, false));
+        IoServer<String> server = new IoServer<String>(ConnectionConfigFactory.createPPNConfig("localhost", 5011, 5012, false));
         server.addConnectionListener(new ServerConnectionListener()
         {
             @Override

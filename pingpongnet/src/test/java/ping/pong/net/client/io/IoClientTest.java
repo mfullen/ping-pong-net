@@ -76,7 +76,7 @@ public class IoClientTest
 
         synchronized (this)
         {
-            this.wait(100);
+            this.wait(300);
         }
         instance.start();
         assertTrue(instance.isConnected());
@@ -207,7 +207,7 @@ public class IoClientTest
 
         synchronized (this)
         {
-            this.wait(300);
+            this.wait(100);
         }
         instance.start();
         assertTrue(instance.isConnected());

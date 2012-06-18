@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 public class DefaultConnectionConfiguration implements ConnectionConfiguration
 {
     public static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnectionConfiguration.class);
-    public static final int DEFAULT_TCP_PORT = 5011;
-    public static final int DEFAULT_UDP_PORT = 5012;
 
     public static String findKeyStorePath(String filepath)
     {
@@ -48,7 +46,7 @@ public class DefaultConnectionConfiguration implements ConnectionConfiguration
 
     DefaultConnectionConfiguration()
     {
-        this(DEFAULT_TCP_PORT, DEFAULT_UDP_PORT, "localhost", false);
+        this(DEFAULT_TCP_PORT, DEFAULT_UDP_PORT, LOCAL_HOST, false);
     }
 
     DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl)

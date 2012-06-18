@@ -7,6 +7,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.ConnectionExceptionHandler;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
@@ -40,6 +42,7 @@ class IoTcpWriteRunnable<MessageType> implements Runnable
      */
     protected RunnableEventListener runnableEventListener = null;
     private DataWriter dataWriter = null;
+    protected DisconnectState disconnectState = DisconnectState.NORMAL;
 
     public IoTcpWriteRunnable(RunnableEventListener runnableEventListener, DataWriter dataWriter, Socket tcpSocket)
     {
@@ -90,7 +93,7 @@ class IoTcpWriteRunnable<MessageType> implements Runnable
         {
             if (this.runnableEventListener != null)
             {
-                this.runnableEventListener.onRunnableClosed();
+                this.runnableEventListener.onRunnableClosed(disconnectState);
                 this.runnableEventListener = null;
             }
         }
@@ -122,8 +125,11 @@ class IoTcpWriteRunnable<MessageType> implements Runnable
             }
             catch (InterruptedException ex)
             {
+                disconnectState = ConnectionExceptionHandler.handleException(ex, LOGGER);
+                running = false;
                 LOGGER.error("Error with write thread", ex);
             }
         }
+        this.close();
     }
 }

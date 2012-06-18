@@ -49,7 +49,7 @@ public class TestClientNonPPNServer
 
     public static void launchPPNServer()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 5111, 5666, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createPPNConfig("localhost", 5111, 5666, false);
         IoServer<byte[]> server = new IoServer<byte[]>(createConnectionConfiguration);
         server.setCustomDataReader(new ReadFullyDataReader());
         server.setCustomDataWriter(new WriteByteArrayDataWriter());
@@ -139,7 +139,7 @@ public class TestClientNonPPNServer
 
     public static void launchClient()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 5111, 5666, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createPPNConfig("localhost", 5111, 5666, false);
         IoClient<byte[]> client = new IoClient<byte[]>(createConnectionConfiguration);
         client.setCustomDataReader(new ReadFullyDataReader());
         client.setCustomDataWriter(new WriteByteArrayDataWriter());

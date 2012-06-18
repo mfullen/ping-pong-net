@@ -65,7 +65,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testShutdownWithNotNulLSockets() throws IOException
     {
-        ServerConnectionManager instance = new ServerConnectionManager(ConnectionConfigFactory.createConnectionConfiguration("localhost", 20111, 20112, false), new IoServer());
+        ServerConnectionManager instance = new ServerConnectionManager(ConnectionConfigFactory.createPPNConfig("localhost", 20111, 20112, false), new IoServer());
         instance.tcpServerSocket = ServerSocketFactory.getDefault().createServerSocket();
         instance.udpServerSocket = new DatagramSocket(instance.configuration.getUdpPort());
         assertNotNull(instance.tcpServerSocket);
@@ -88,7 +88,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testRunSSL()
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 4011, 4012, true);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createPPNConfig("localhost", 4011, 4012, true);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServer(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();
@@ -100,7 +100,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testRunCreateUDPSocketError() throws IOException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 7011, 7012, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createPPNConfig("localhost", 7011, 7012, false);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServer(createConnectionConfiguration));
         instance.tcpServerSocket = ServerSocketFactory.getDefault().createServerSocket(7011);
         instance.udpServerSocket = new DatagramSocket(instance.configuration.getUdpPort());
@@ -113,7 +113,7 @@ public class ServerConnectionManagerTest
     @Test
     public void testRunAcceptedSocket() throws IOException, InterruptedException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 6011, 6012, false);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createPPNConfig("localhost", 6011, 6012, false);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServer(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();
@@ -139,7 +139,7 @@ public class ServerConnectionManagerTest
                                                   CertificateException,
                                                   KeyManagementException
     {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration("localhost", 8011, 8012, true);
+        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createPPNConfig("localhost", 8011, 8012, true);
         ServerConnectionManager instance = new ServerConnectionManager(createConnectionConfiguration, new IoServer(createConnectionConfiguration));
         Thread th = new Thread(instance);
         th.start();

@@ -1,7 +1,9 @@
 package ping.pong.net.connection.io;
 
-import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -13,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.DisconnectMessage;
@@ -69,18 +72,10 @@ public abstract class AbstractIoConnection<MessageType> implements
      */
     protected ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD_POOL_SIZE);
     /**
-     * The Udp Socket used for this connection
-     */
-    protected DatagramSocket udpSocket = null;
-    /**
      * The Tcp Socket used for this connection
      */
     protected Socket tcpSocket = null;
     protected boolean usingCustomSerialization = true;
-    /**
-     * The Runnable Event Listener used for this connection
-     */
-    protected RunnableEventListener runnableEventListener = new RunnableEventListenerImpl();
     /**
      * Flag for whether the connection has been closed
      */
@@ -90,6 +85,11 @@ public abstract class AbstractIoConnection<MessageType> implements
      */
     protected boolean canStart = true;
     /**
+     * Flag for whether UDP is enabled or not
+     */
+    protected boolean udpEnabled = false;
+    protected SocketAddress socketAddress = null;
+    /**
      *  Data reader.
      */
     private DataReader dataReader = null;
@@ -98,16 +98,34 @@ public abstract class AbstractIoConnection<MessageType> implements
      */
     private DataWriter dataWriter = null;
 
-    public AbstractIoConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
+    public AbstractIoConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket)
     {
         this.config = config;
         this.tcpSocket = tcpSocket;
-        this.udpSocket = udpSocket;
         this.dataReader = dataReader;
         this.dataWriter = dataWriter;
         boolean initTcp = this.initTcp();
         this.canStart = initTcp;
     }
+
+    protected abstract void processMessage(MessageType message);
+
+    /**
+     * Start Udp Connection
+     */
+    protected abstract void startUdp();
+
+    /**
+     * Close Udp connection. Even though UDP is connectionless we are keeping a state
+     */
+    protected abstract void closeUdp();
+
+    /**
+     * This method should enqueue a Message to the UDP write thread
+     *
+     * @param msg the message to enqueue for sending
+     */
+    protected abstract void sendUdpMessage(MessageType msg);
 
     /**
      * Method to initialize a TCP connection. Creates read and Write threads for
@@ -118,7 +136,6 @@ public abstract class AbstractIoConnection<MessageType> implements
     protected final boolean initTcp()
     {
         boolean successful = true;
-
 
         //if the custom reader/writer are null, create default
         boolean hasDataReader = this.dataReader != null;
@@ -152,9 +169,31 @@ public abstract class AbstractIoConnection<MessageType> implements
         {
             successful = false;
         }
+        else
+        {
+            this.socketAddress = this.tcpSocket.getRemoteSocketAddress();
+        }
 
-        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, runnableEventListener, dataReader, tcpSocket);
-        this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(runnableEventListener, dataWriter, tcpSocket);
+        this.ioTcpReadRunnable = new IoTcpReadRunnable<MessageType>(this, new RunnableEventListener()
+        {
+            @Override
+            public void onRunnableClosed(DisconnectState disconnectState)
+            {
+                LOGGER.trace("IoTcpReadRunnable closed {}", disconnectState);
+                disconnect();
+                ioTcpReadRunnable = null;
+            }
+        }, dataReader, tcpSocket);
+        this.ioTcpWriteRunnable = new IoTcpWriteRunnable<MessageType>(new RunnableEventListener()
+        {
+            @Override
+            public void onRunnableClosed(DisconnectState disconnectState)
+            {
+                LOGGER.trace("ioTcpWriteRunnable closed {}", disconnectState);
+                disconnect();
+                ioTcpWriteRunnable = null;
+            }
+        }, dataWriter, tcpSocket);
 
         return successful;
     }
@@ -165,7 +204,20 @@ public abstract class AbstractIoConnection<MessageType> implements
         return usingCustomSerialization;
     }
 
-    protected abstract void processMessage(MessageType message);
+    protected void disconnect()
+    {
+        this.receiveQueue.add((MessageType) new DisconnectMessage());
+    }
+
+    @Override
+    public synchronized SocketAddress getSocketAddress()
+    {
+        if (this.socketAddress == null)
+        {
+            throw new NullPointerException("Socket not connected yet");
+        }
+        return this.socketAddress;
+    }
 
     /**
      * Fire the on socket created event for all listeners
@@ -204,6 +256,9 @@ public abstract class AbstractIoConnection<MessageType> implements
         {
             this.executorService.execute(ioTcpWriteRunnable);
             this.executorService.execute(ioTcpReadRunnable);
+
+            this.startUdp();
+
             this.connected = true;
             LOGGER.trace("Connection started successfully.");
         }
@@ -235,7 +290,7 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
 
         //Connection is done, try to properly close and cleanup
-        LOGGER.debug("{} Main thread calling close", getConnectionName());
+        LOGGER.debug("{} Main Connection thread calling close", getConnectionName());
         this.close();
     }
 
@@ -246,7 +301,17 @@ public abstract class AbstractIoConnection<MessageType> implements
 
     protected boolean isAnyRunning()
     {
-        return this.ioTcpReadRunnable.isRunning() || this.ioTcpWriteRunnable.isRunning();
+        return this.isTcpReadRunning() || this.isTcpWriteRunning();
+    }
+
+    protected boolean isTcpWriteRunning()
+    {
+        return this.ioTcpWriteRunnable != null && this.ioTcpWriteRunnable.isRunning();
+    }
+
+    protected boolean isTcpReadRunning()
+    {
+        return this.ioTcpReadRunnable != null && this.ioTcpReadRunnable.isRunning();
     }
 
     @Override
@@ -257,29 +322,33 @@ public abstract class AbstractIoConnection<MessageType> implements
             LOGGER.warn("Connection cannot be closed, it never started");
             return;
         }
+        if (this.closed)
+        {
+            LOGGER.warn("Connection is already Closed");
+            return;
+        }
 
         this.connected = false;
         if (this.isAnyRunning())
         {
             this.fireOnSocketClosed();
-            this.receiveQueue.add((MessageType) new DisconnectMessage());
+            disconnect();
+
+            if (this.isTcpWriteRunning())
+            {
+                this.ioTcpWriteRunnable.close();
+            }
+
+            if (this.isTcpReadRunning())
+            {
+                this.ioTcpReadRunnable.close();
+            }
+
+            this.closeUdp();
         }
 
-        if (this.ioTcpWriteRunnable.isRunning())
-        {
-            this.ioTcpWriteRunnable.close();
-        }
-        if (this.ioTcpReadRunnable.isRunning())
-        {
-            this.ioTcpReadRunnable.close();
-        }
-
-
-        if (!isAnyRunning() && !isConnected() && !this.closed)
-        {
-            LOGGER.info("Connection ({}) has been closed", this.getConnectionId());
-            this.closed = true;
-        }
+        LOGGER.info("Connection ({}) has been closed", this.getConnectionId());
+        this.closed = true;
     }
 
     @Override
@@ -308,16 +377,6 @@ public abstract class AbstractIoConnection<MessageType> implements
     }
 
     /**
-     * This method should enqueue a Message to the UDP write thread
-     *
-     * @param msg the message to enqueue for sending
-     */
-    protected void sendUdpMessage(MessageType msg)
-    {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /**
      * This method enqueues a message on the TcpWrite thread for sending
      *
      * @param msg the message to enqueue for sending
@@ -337,9 +396,9 @@ public abstract class AbstractIoConnection<MessageType> implements
     }
 
     @Override
-    public ConnectionConfiguration getConnectionConfiguration()
+    public boolean isUdpEnabled()
     {
-        return this.config;
+        return udpEnabled;
     }
 
     @Override
@@ -372,18 +431,5 @@ public abstract class AbstractIoConnection<MessageType> implements
     public void removeConnectionEventListener(ConnectionEvent listener)
     {
         this.connectionEventListeners.remove(listener);
-    }
-
-    final class RunnableEventListenerImpl implements RunnableEventListener
-    {
-        private RunnableEventListenerImpl()
-        {
-        }
-
-        @Override
-        public void onRunnableClosed()
-        {
-            AbstractIoConnection.this.close();
-        }
     }
 }

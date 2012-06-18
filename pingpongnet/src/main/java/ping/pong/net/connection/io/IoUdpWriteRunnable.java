@@ -2,14 +2,15 @@ package ping.pong.net.connection.io;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.ConnectionExceptionHandler;
 import ping.pong.net.connection.ConnectionUtils;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
-import ping.pong.net.connection.config.ConnectionConfiguration;
 
 /**
  *
@@ -28,12 +29,12 @@ public class IoUdpWriteRunnable<MessageType> extends AbstractIoUdpRunnable
     /**
      * Configuration for the UDP write
      */
-    protected ConnectionConfiguration config = null;
+    protected InetSocketAddress address = null;
 
-    public IoUdpWriteRunnable(ConnectionConfiguration config, RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
+    public IoUdpWriteRunnable(InetSocketAddress address, RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
         super(runnableEventListener, udpSocket);
-        this.config = config;
+        this.address = address;
     }
 
     /**
@@ -50,7 +51,7 @@ public class IoUdpWriteRunnable<MessageType> extends AbstractIoUdpRunnable
     public void run()
     {
         this.running = true;
-
+        this.setDisconnectState(DisconnectState.NORMAL);
         try
         {
             while (this.running)
@@ -67,13 +68,14 @@ public class IoUdpWriteRunnable<MessageType> extends AbstractIoUdpRunnable
                     messageBytes = ConnectionUtils.getbytes(message);
                     LOGGER.trace("Message to send is {}", message);
                 }
-                DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length, InetAddress.getByName(this.config.getIpAddress()), this.config.getUdpPort());
+                DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length, this.address);
                 this.udpSocket.send(packet);
             }
         }
         catch (Exception e)
         {
             LOGGER.error("Error Writing UDP message", e);
+            this.setDisconnectState(ConnectionExceptionHandler.handleException(e, LOGGER));
         }
         finally
         {

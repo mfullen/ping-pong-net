@@ -24,8 +24,9 @@ public final class ConnectionExceptionHandler
      *
      * @param ex
      */
-    public static void handleException(final Exception ex, Logger logger)
+    public static DisconnectState handleException(final Exception ex, Logger logger)
     {
+        DisconnectState disconnectState = DisconnectState.ERROR;
         //    BindException, ConnectException, NoRouteToHostException, PortUnreachableException
         if (ex instanceof SocketException)
         {
@@ -51,7 +52,8 @@ public final class ConnectionExceptionHandler
             }
             else if (ex.getMessage().contains("socket closed"))
             {
-                logger.trace("Socket Closed. Server Shutdown");
+                disconnectState = DisconnectState.NORMAL;
+                logger.trace("The Socket was closed.");
             }
             else
             {
@@ -64,11 +66,13 @@ public final class ConnectionExceptionHandler
         }
         else if (ex instanceof EOFException)
         {
-            logger.error("End of client. Client must of disconnected", ex);
+            disconnectState = DisconnectState.NORMAL;
+            logger.error("End of Stream the Socket was closed.", ex);
         }
         else
         {
             logger.error("Unknown Error", ex);
         }
+        return disconnectState;
     }
 }

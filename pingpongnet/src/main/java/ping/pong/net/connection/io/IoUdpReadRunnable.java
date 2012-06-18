@@ -9,7 +9,9 @@ import java.nio.ByteOrder;
 import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.ConnectionExceptionHandler;
 import ping.pong.net.connection.ConnectionUtils;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.messaging.MessageProcessor;
 
@@ -41,6 +43,7 @@ public class IoUdpReadRunnable<MessageType> extends AbstractIoUdpRunnable
         this.running = true;
         boolean hasErrors = false;
         byte[] data = new byte[RECEIVE_BUFFER_SIZE];
+        this.setDisconnectState(DisconnectState.NORMAL);
         while (this.running && !hasErrors)
         {
             MessageType messageType = null;
@@ -79,16 +82,19 @@ public class IoUdpReadRunnable<MessageType> extends AbstractIoUdpRunnable
             }
             catch (IOException ex)
             {
-                LOGGER.error("Error receiving UDP packet", ex);
                 hasErrors = true;
+                this.setDisconnectState(ConnectionExceptionHandler.handleException(ex, LOGGER));
+                LOGGER.error("Error receiving UDP packet", ex);
             }
             catch (ClassNotFoundException ex)
             {
+                hasErrors = true;
+                this.setDisconnectState(DisconnectState.ERROR);
                 LOGGER.error("Error converting to object");
             }
             finally
             {
-                if (messageType != null)
+                if (messageType != null && !hasErrors)
                 {
                     this.messageProcessor.enqueueReceivedMessage(messageType);
                 }

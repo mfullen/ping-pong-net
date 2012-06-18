@@ -11,6 +11,7 @@ import java.net.SocketException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageProcessor;
@@ -48,9 +49,9 @@ public class IoUdpReadRunnableTest
         IoUdpReadRunnable<byte[]> ioUdpReadRunnable = new IoUdpReadRunnable<byte[]>(messageProcessorImpl, new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, udpSocket);
         Thread thread = new Thread(ioUdpReadRunnable);
@@ -60,8 +61,9 @@ public class IoUdpReadRunnableTest
         DatagramPacket sendPacket =
                 new DatagramPacket(message.getBytes(), message.getBytes().length, InetAddress.getLocalHost(), 7001);
         clientUdpSocket.send(sendPacket);
-        thread.join(10);
+        thread.join(200);
         assertEquals(messageProcessorImpl.myMessage, message);
+        ioUdpReadRunnable.close();
     }
 
     /**
@@ -76,15 +78,14 @@ public class IoUdpReadRunnableTest
         IoUdpReadRunnable<byte[]> ioUdpReadRunnable = new IoUdpReadRunnable<byte[]>(messageProcessorImpl, new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, udpSocket);
         assertFalse(ioUdpReadRunnable.isRunning());
         ioUdpReadRunnable.close();
         assertFalse(ioUdpReadRunnable.isRunning());
-
     }
 
     @Test
@@ -96,9 +97,9 @@ public class IoUdpReadRunnableTest
         final IoUdpReadRunnable<byte[]> ioUdpReadRunnable = new IoUdpReadRunnable<byte[]>(messageProcessorImpl, new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, udpSocket);
         assertFalse(ioUdpReadRunnable.isRunning());
@@ -141,8 +142,8 @@ public class IoUdpReadRunnableTest
         public void enqueueReceivedMessage(byte[] byteMessage)
         {
             String string = new String(byteMessage);
-            logger.debug("Message Received {}", string);
             myMessage = string;
+            logger.debug("Message Received (mymessage) {}", myMessage);
         }
 
         @Override

@@ -9,5 +9,5 @@ public interface RunnableEventListener
     /**
      * Allows the listener to be notified that the runnable has closed.
      */
-    void onRunnableClosed();
+    void onRunnableClosed(DisconnectState disconnectState);
 }

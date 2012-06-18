@@ -5,14 +5,13 @@ import java.net.Socket;
 import ping.pong.net.connection.io.DataReader;
 import ping.pong.net.connection.io.DataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.io.AbstractIoConnection;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 
 /**
  * Client Io Connection class. This class extends from AbstractIoConnection
  * @author mfullen
  */
-final class ClientIoNonPPNConnection<MessageType> extends AbstractIoConnection<MessageType>
+final class ClientIoNonPPNConnection<MessageType> extends ClientIoConnection<MessageType>
 {
     public ClientIoNonPPNConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
     {

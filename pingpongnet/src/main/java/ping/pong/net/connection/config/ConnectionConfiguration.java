@@ -14,6 +14,22 @@ public interface ConnectionConfiguration
      * Default password for the keystore
      */
     String DEFAULT_KEY_STORE_PASSWORD = "pingpong123";
+    /**
+     * To turn off UDP for your connection
+     */
+    int UDP_DISABLED = -1;
+    /**
+     * Local Host
+     */
+    String LOCAL_HOST = "localhost";
+    /**
+     * Default TCP PORT
+     */
+    int DEFAULT_TCP_PORT = 5011;
+    /**
+     * Default UDP PORT
+     */
+    int DEFAULT_UDP_PORT = 5012;
 
     /**
      * Get the port the TCP connection uses

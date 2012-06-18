@@ -1,7 +1,7 @@
 package ping.pong.net.connection;
 
+import java.net.SocketAddress;
 import ping.pong.net.connection.messaging.MessageSender;
-import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.Envelope;
 
 /**
@@ -39,11 +39,11 @@ public interface Connection<Message> extends
     void setConnectionId(int id);
 
     /**
-     * Get the Connections Configuration used for creating the sockets
+     * Get the Socket address
      *
-     * @return ConnectionConfiguration
+     * @return
      */
-    ConnectionConfiguration getConnectionConfiguration();
+    SocketAddress getSocketAddress();
 
     /**
      * Add a ConnectionEvent listener
@@ -64,4 +64,10 @@ public interface Connection<Message> extends
      * @return true for custom reader/writer false for default
      */
     boolean isUsingCustomSerialization();
+
+    /**
+     * True if UDP is enabled. False if not
+     * @return
+     */
+    boolean isUdpEnabled();
 }

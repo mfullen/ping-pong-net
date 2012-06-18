@@ -18,7 +18,7 @@ import org.slf4j.Marker;
  */
 public class ConnectionExceptionHandlerTest
 {
-    
+
     /**
      * Test of handleException method, of class ConnectionExceptionHandler.
      */
@@ -31,7 +31,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("Socket already in use. Try starting the server on another socket.", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_JVM_Bind()
     {
@@ -41,7 +41,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("Socket already in use. Try starting the server on another socket.", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_ConnectException()
     {
@@ -51,7 +51,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("ConnectException.", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_NoRouteToHostException()
     {
@@ -61,7 +61,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("NoRouteToHostException.", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_PortUnreachableException()
     {
@@ -71,7 +71,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("PortUnreachableException.", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_Connection_reset()
     {
@@ -81,7 +81,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getDebugStringCounter());
         assertEquals("Connection reset: Closed Connection foricibly.", logger.getDebugStringString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_socket_closed()
     {
@@ -89,9 +89,9 @@ public class ConnectionExceptionHandlerTest
         MyLogger logger = new MyLogger();
         ConnectionExceptionHandler.handleException(ex, logger);
         assertEquals(1, logger.getTraceStringCounter());
-        assertEquals("Socket Closed. Server Shutdown", logger.getTraceStringString());
+        assertEquals("The Socket was closed.", logger.getTraceStringString());
     }
-    
+
     @Test
     public void testHandleException_SocketException_Unknkown()
     {
@@ -101,7 +101,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("Unknown SocketException Error", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_SSLException()
     {
@@ -111,7 +111,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("SSL Error: ", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_EOFException()
     {
@@ -119,9 +119,9 @@ public class ConnectionExceptionHandlerTest
         MyLogger logger = new MyLogger();
         ConnectionExceptionHandler.handleException(ex, logger);
         assertEquals(1, logger.getErrorStringThrowableCounter());
-        assertEquals("End of client. Client must of disconnected", logger.getErrorStringThrowableString());
+        assertEquals("End of Stream the Socket was closed.", logger.getErrorStringThrowableString());
     }
-    
+
     @Test
     public void testHandleException_Other()
     {
@@ -131,7 +131,7 @@ public class ConnectionExceptionHandlerTest
         assertEquals(1, logger.getErrorStringThrowableCounter());
         assertEquals("Unknown Error", logger.getErrorStringThrowableString());
     }
-    
+
     public static class MyLogger implements Logger
     {
         private int errorStringThrowableCounter;
@@ -140,7 +140,7 @@ public class ConnectionExceptionHandlerTest
         private String debugStringString;
         private int traceStringCounter;
         private String traceStringString;
-        
+
         public int getErrorStringThrowableCounter()
         {
             return errorStringThrowableCounter;
@@ -539,6 +539,6 @@ public class ConnectionExceptionHandlerTest
         {
             throw new UnsupportedOperationException("Not supported yet.");
         }
-        
+
     }
 }

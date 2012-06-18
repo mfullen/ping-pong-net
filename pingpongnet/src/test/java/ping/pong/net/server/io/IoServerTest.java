@@ -1,5 +1,6 @@
 package ping.pong.net.server.io;
 
+import java.net.SocketAddress;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.config.ConnectionConfiguration;
@@ -75,12 +76,6 @@ public class IoServerTest
         }
 
         @Override
-        public ConnectionConfiguration getConnectionConfiguration()
-        {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
         public void addConnectionEventListener(ConnectionEvent listener)
         {
             throw new UnsupportedOperationException("Not supported yet.");
@@ -94,6 +89,18 @@ public class IoServerTest
 
         @Override
         public boolean isUsingCustomSerialization()
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public boolean isUdpEnabled()
+        {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public SocketAddress getSocketAddress()
         {
             throw new UnsupportedOperationException("Not supported yet.");
         }

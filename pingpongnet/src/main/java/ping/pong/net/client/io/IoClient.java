@@ -1,6 +1,8 @@
 package ping.pong.net.client.io;
 
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,11 +99,15 @@ public class IoClient<Message> implements Client<Message>
                 SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
                 Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
 
+                DatagramSocket udpSocket = null;
+                InetSocketAddress localSocketAddress = new InetSocketAddress(0);
+                udpSocket = config.getUdpPort() == ConnectionConfiguration.UDP_DISABLED ? null : new DatagramSocket(localSocketAddress);
+
                 //if we have a custom data reader or writer use the ClientIoNonPPNConnection
                 boolean customSerialization = (this.customDataReader != null || this.customDataWriter != null);
                 this.connection = customSerialization
-                        ? ClientIoConnectionFactory.<Message>createNonPPNConnection(config, customDataReader, customDataWriter, tcpSocket, null)
-                        : ClientIoConnectionFactory.<Message>createPPNConnection(config, tcpSocket, null);
+                        ? ClientIoConnectionFactory.<Message>createNonPPNConnection(config, customDataReader, customDataWriter, tcpSocket, udpSocket)
+                        : ClientIoConnectionFactory.<Message>createPPNConnection(config, tcpSocket, udpSocket);
 
                 this.connection.addConnectionEventListener(new ConnectionEventImpl());
             }

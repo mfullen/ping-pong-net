@@ -3,6 +3,7 @@ package ping.pong.net.connection.io;
 import java.net.DatagramSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
@@ -27,6 +28,7 @@ public abstract class AbstractIoUdpRunnable implements Runnable
      * Notifies the listener when this runnable is closed
      */
     protected RunnableEventListener runnableEventListener = null;
+    protected DisconnectState disconnectState = DisconnectState.NORMAL;
 
     public AbstractIoUdpRunnable(RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
@@ -43,13 +45,13 @@ public abstract class AbstractIoUdpRunnable implements Runnable
         return this.running;
     }
 
-    public void close()
+    public synchronized void close()
     {
         this.running = false;
         if (this.udpSocket != null)
         {
             LOGGER.trace("attempting to close udp socket");
-            this.udpSocket.close();
+            //this.udpSocket.close();
         }
         else
         {
@@ -58,10 +60,15 @@ public abstract class AbstractIoUdpRunnable implements Runnable
 
         if (this.runnableEventListener != null)
         {
-            this.runnableEventListener.onRunnableClosed();
+            this.runnableEventListener.onRunnableClosed(disconnectState);
             this.runnableEventListener = null;
-            LOGGER.debug("Udp Write Socket Closed");
+            LOGGER.debug("Udp Socket Closed");
         }
+    }
+
+    public synchronized void setDisconnectState(DisconnectState disconnectState)
+    {
+        this.disconnectState = disconnectState;
     }
 
     @Override

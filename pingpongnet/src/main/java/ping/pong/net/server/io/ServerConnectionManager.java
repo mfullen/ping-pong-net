@@ -3,15 +3,25 @@ package ping.pong.net.server.io;
 import ping.pong.net.connection.io.DataWriter;
 import ping.pong.net.connection.io.DataReader;
 import java.io.IOException;
+import java.io.StreamCorruptedException;
+import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocketFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.*;
 import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.io.AbstractIoUdpRunnable;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.connection.messaging.ConnectionIdMessage;
@@ -30,6 +40,8 @@ class ServerConnectionManager<MessageType> implements Runnable
     protected IoServer<MessageType> server = null;
     protected DataReader customDataReader = null;
     protected DataWriter customDataWriter = null;
+    protected Map<SocketAddress, Connection> udpConnections = new ConcurrentHashMap<SocketAddress, Connection>();
+    protected AbstractIoUdpRunnable ioUdpReadRunnable = null;
 
     public ServerConnectionManager(ConnectionConfiguration configuration, IoServer<MessageType> server)
     {
@@ -81,8 +93,14 @@ class ServerConnectionManager<MessageType> implements Runnable
             LOGGER.warn("UDP Socket is null");
         }
 
+        if (ioUdpReadRunnable != null)
+        {
+            ioUdpReadRunnable.close();
+        }
+
         this.tcpServerSocket = null;
         this.udpServerSocket = null;
+        this.ioUdpReadRunnable = null;
     }
 
     /**
@@ -117,16 +135,40 @@ class ServerConnectionManager<MessageType> implements Runnable
                 LOGGER.error("Error creating TCP server socket. " + ex);
                 listening = false;
             }
+
             try
             {
-                udpServerSocket = new DatagramSocket(configuration.getUdpPort());
+                udpServerSocket = this.configuration.getUdpPort() == ConnectionConfiguration.UDP_DISABLED ? null : new DatagramSocket(new InetSocketAddress(configuration.getUdpPort()));
+                if (udpServerSocket != null)
+                {
+                    ioUdpReadRunnable = new AbstractIoUdpRunnableImpl<MessageType>(null, udpServerSocket, new UdpReceived<MessageType>()
+                    {
+                        @Override
+                        public void UdpPacketReceived(SocketAddress socketAddress, MessageType message)
+                        {
+                            Connection<MessageType> connection = udpConnections.get(socketAddress);
+                            if (connection != null && connection.isConnected())
+                            {
+                                ServerIoConnection<MessageType> serverC = (ServerIoConnection) connection;
+                                serverC.enqueueReceivedMessage(message);
+                                LOGGER.trace("UDP packet received, enqueuing message");
+                            }
+                        }
+                    });
+                    Thread thread = new Thread(ioUdpReadRunnable);
+                    thread.setDaemon(true);
+                    thread.start();
+                }
             }
             catch (Exception e)
             {
                 LOGGER.error("Error creating UDP server socket. " + e);
                 listening = false;
+                throw e;
             }
 
+            //the UDP threadS need to be moved to the server connection manager. The manager needs to keep track of the connected
+            //udp connections in a map
             while (listening)
             {
                 LOGGER.trace("ServerConnectionManager about to block until connection accepted.");
@@ -142,6 +184,7 @@ class ServerConnectionManager<MessageType> implements Runnable
                 }
                 if (acceptingSocket != null)
                 {
+                    LOGGER.info("Accepting Socket info ip:{} port:{}", acceptingSocket.getInetAddress(), acceptingSocket.getPort());
                     final Connection ioServerConnection = new ServerIoConnection<MessageType>(configuration, customDataReader, customDataWriter, acceptingSocket, udpServerSocket);
                     ioServerConnection.setConnectionId(this.server.getNextAvailableId());
 
@@ -151,6 +194,7 @@ class ServerConnectionManager<MessageType> implements Runnable
                     cThread.setDaemon(true);
                     cThread.start();
                     this.server.addConnection(ioServerConnection);
+                    this.udpConnections.put(ioServerConnection.getSocketAddress(), ioServerConnection);
                     LOGGER.info("Connection {} started...", ioServerConnection.getConnectionId());
                 }
             }
@@ -194,7 +238,20 @@ class ServerConnectionManager<MessageType> implements Runnable
                 if (connection != null)
                 {
                     server.removeConnection(ioServerConnection);
+                    boolean containsValue = udpConnections.containsValue(ioServerConnection);
+                    if (containsValue)
+                    {
+                        for (Map.Entry<SocketAddress, Connection> entry : udpConnections.entrySet())
+                        {
+                            if (entry.getValue().equals(ioServerConnection))
+                            {
+                                udpConnections.remove(entry.getKey());
+                            }
+                        }
+                    }
                 }
+
+                LOGGER.trace("OnSocketClosed");
             }
         }
 
@@ -207,7 +264,7 @@ class ServerConnectionManager<MessageType> implements Runnable
                 LOGGER.debug("Using PPN Serialization, sending Id Response");
             }
 
-            LOGGER.debug("OnSocketCreated");
+            LOGGER.trace("OnSocketCreated");
         }
 
         @Override
@@ -217,6 +274,89 @@ class ServerConnectionManager<MessageType> implements Runnable
             {
                 messageListener.messageReceived(ioServerConnection, message);
             }
+        }
+    }
+
+    interface UdpReceived<MessageType>
+    {
+        void UdpPacketReceived(SocketAddress socketAddress, MessageType message);
+    }
+
+    private class AbstractIoUdpRunnableImpl<MessageType> extends AbstractIoUdpRunnable
+    {
+        private static final int RECEIVE_BUFFER_SIZE = 1024;
+        private UdpReceived<MessageType> udpReceived = null;
+
+        public AbstractIoUdpRunnableImpl(RunnableEventListener runnableEventListener, DatagramSocket udpSocket, UdpReceived<MessageType> udpReceived)
+        {
+            super(runnableEventListener, udpSocket);
+            this.udpReceived = udpReceived;
+        }
+
+        @Override
+        public void run()
+        {
+            this.running = true;
+            byte[] data = new byte[RECEIVE_BUFFER_SIZE];
+            this.setDisconnectState(DisconnectState.NORMAL);
+            DatagramPacket packet = null;
+            while (this.running)
+            {
+                MessageType messageType = null;
+                byte[] trimmedBuffer = null;
+                try
+                {
+                    packet = new DatagramPacket(data, data.length);
+                    udpSocket.receive(packet);
+                    byte[] receivedData = packet.getData();
+
+                    LOGGER.trace("Received {} from {} on port {}", new Object[]
+                            {
+                                receivedData, packet.getAddress(),
+                                packet.getPort()
+                            });
+
+                    trimmedBuffer = Arrays.copyOf(receivedData, packet.getLength());
+
+                    //If the byte order is LittleEndian convert to BigEndian
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(trimmedBuffer.length);
+                    LOGGER.trace("Byte order is {}", byteBuffer.order());
+                    if (byteBuffer.order().equals(ByteOrder.LITTLE_ENDIAN))
+                    {
+                        trimmedBuffer = byteBuffer.order(ByteOrder.BIG_ENDIAN).array();
+                        LOGGER.trace("Byte order converted to {}", ByteOrder.BIG_ENDIAN);
+                    }
+
+                    messageType = ConnectionUtils.<MessageType>getObject(trimmedBuffer);
+                    LOGGER.trace("Message deserialized into: " + messageType);
+
+                }
+                catch (StreamCorruptedException streamCorruptedException)
+                {
+                    //The received message isn't an Object so process it as normal byte[]
+                    messageType = (MessageType) trimmedBuffer;
+                }
+                catch (IOException ex)
+                {
+                    running = false;
+                    this.setDisconnectState(ConnectionExceptionHandler.handleException(ex, LOGGER));
+                    LOGGER.error("Error receiving UDP packet", ex);
+                }
+                catch (ClassNotFoundException ex)
+                {
+                    running = false;
+                    this.setDisconnectState(DisconnectState.ERROR);
+                    LOGGER.error("Error converting to object");
+                }
+                finally
+                {
+                    if (running && messageType != null)
+                    {
+                        udpReceived.UdpPacketReceived(packet.getSocketAddress(), messageType);
+                    }
+                }
+            }
+            this.close();
         }
     }
 }

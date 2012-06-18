@@ -1,7 +1,6 @@
 package ping.pong.net.connection.io;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 import javax.net.ServerSocketFactory;
@@ -51,7 +50,7 @@ public class AbstractIoConnectionTest
     public void testInitTcpWithAllNullDataReaderWriter() throws IOException
     {
         Socket tcpSocket = SocketFactory.getDefault().createSocket();
-        AbstractIoConnection instance = new AbstractIoConnectionImpl(null, null, null, tcpSocket, null);
+        AbstractIoConnection instance = new AbstractIoConnectionImpl(null, null, null, tcpSocket);
         assertTrue(instance.initTcp());
     }
 
@@ -63,11 +62,11 @@ public class AbstractIoConnectionTest
     {
         AbstractIoConnection instance = new AbstractIoConnectionImpl();
         assertFalse(instance.isUsingCustomSerialization());
-        instance = new AbstractIoConnectionImpl(null, new ReadFullyDataReader(), null, null, null);
+        instance = new AbstractIoConnectionImpl(null, new ReadFullyDataReader(), null, null);
         assertTrue(instance.isUsingCustomSerialization());
-        instance = new AbstractIoConnectionImpl(null, new ReadFullyDataReader(), new WriteByteArrayDataWriter(), null, null);
+        instance = new AbstractIoConnectionImpl(null, new ReadFullyDataReader(), new WriteByteArrayDataWriter(), null);
         assertTrue(instance.isUsingCustomSerialization());
-        instance = new AbstractIoConnectionImpl(null, null, new WriteByteArrayDataWriter(), null, null);
+        instance = new AbstractIoConnectionImpl(null, null, new WriteByteArrayDataWriter(), null);
         assertTrue(instance.isUsingCustomSerialization());
     }
 
@@ -207,7 +206,7 @@ public class AbstractIoConnectionTest
         Socket tcpSocket = SocketFactory.getDefault().createSocket("localhost", 8077);
 
 
-        AbstractIoConnection instance = new AbstractIoConnectionImpl(null, new ReadObjectDataReader(), new WriteObjectDataWriter(), tcpSocket, null);
+        AbstractIoConnection instance = new AbstractIoConnectionImpl(null, new ReadObjectDataReader(), new WriteObjectDataWriter(), tcpSocket);
 
         assertTrue(instance.canStart);
         assertFalse(instance.isConnected());
@@ -400,17 +399,6 @@ public class AbstractIoConnectionTest
     }
 
     /**
-     * Test of getConnectionConfiguration method, of class AbstractIoConnection.
-     */
-    @Test
-    public void testGetConnectionConfiguration()
-    {
-        ConnectionConfiguration createConnectionConfiguration = ConnectionConfigFactory.createConnectionConfiguration();
-        AbstractIoConnection instance = new AbstractIoConnectionImpl(createConnectionConfiguration, null, null, null, null);
-        assertEquals(instance.getConnectionConfiguration(), createConnectionConfiguration);
-    }
-
-    /**
      * Test of enqueueReceivedMessage method, of class AbstractIoConnection.
      */
     @Test
@@ -469,18 +457,33 @@ public class AbstractIoConnectionTest
     {
         public AbstractIoConnectionImpl()
         {
-            super(null, null, null, null, null);
+            super(null, null, null, null);
         }
 
-        public AbstractIoConnectionImpl(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket, DatagramSocket udpSocket)
+        public AbstractIoConnectionImpl(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket)
         {
-            super(config, dataReader, dataWriter, tcpSocket, udpSocket);
+            super(config, dataReader, dataWriter, tcpSocket);
         }
 
         @Override
         protected void processMessage(M message)
         {
             //proce
+        }
+
+        @Override
+        protected void startUdp()
+        {
+        }
+
+        @Override
+        protected void closeUdp()
+        {
+        }
+
+        @Override
+        protected void sendUdpMessage(M msg)
+        {
         }
     }
 

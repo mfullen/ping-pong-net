@@ -8,6 +8,7 @@ import ping.pong.net.connection.messaging.MessageProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.ConnectionExceptionHandler;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 
 /**
@@ -43,6 +44,7 @@ class IoTcpReadRunnable<MessageType> implements Runnable
      */
     protected RunnableEventListener runnableEventListener = null;
     private DataReader dataReader = null;
+    protected DisconnectState disconnectState = DisconnectState.NORMAL;
 
     /**
      * Constructor for the Read Thread
@@ -102,7 +104,7 @@ class IoTcpReadRunnable<MessageType> implements Runnable
         {
             if (this.runnableEventListener != null)
             {
-                this.runnableEventListener.onRunnableClosed();
+                this.runnableEventListener.onRunnableClosed(disconnectState);
                 this.runnableEventListener = null;
             }
         }
@@ -114,8 +116,8 @@ class IoTcpReadRunnable<MessageType> implements Runnable
         this.init();
         this.running = true;
 
-        boolean hasErrors = false;
-        while (this.running && !hasErrors)
+
+        while (this.running)
         {
             try
             {
@@ -128,13 +130,14 @@ class IoTcpReadRunnable<MessageType> implements Runnable
                 else
                 {
                     LOGGER.error("Read Object is null");
-                    hasErrors = true;
+                    disconnectState = DisconnectState.ERROR;
+                    this.running = false;
                 }
             }
             catch (Exception ex)
             {
-                ConnectionExceptionHandler.handleException(ex, LOGGER);
-                hasErrors = true;
+                disconnectState = ConnectionExceptionHandler.handleException(ex, LOGGER);
+                this.running = false;
             }
         }
         this.close();

@@ -1,5 +1,7 @@
 package ping.pong.net.connection.io;
 
+import java.net.InetSocketAddress;
+import ping.pong.net.connection.DisconnectState;
 import java.net.SocketException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,16 +41,16 @@ public class IoUdpWriteRunnableTest
     @Test
     public void testSendByte() throws SocketException, InterruptedException
     {
-        ConnectionConfiguration config = ConnectionConfigFactory.createConnectionConfiguration("localhost", 9007, 9009, false);
+        ConnectionConfiguration config = ConnectionConfigFactory.createPPNConfig("localhost", 9007, 9009, false);
         final String message = "hello world";
         DatagramSocket udpSocket = new DatagramSocket(config.getUdpPort());
         ByteMessageProcessorImpl messageProcessorImpl = new ByteMessageProcessorImpl();
         IoUdpReadRunnable<byte[]> ioUdpReadRunnable = new IoUdpReadRunnable<byte[]>(messageProcessorImpl, new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, udpSocket);
         Thread thread = new Thread(ioUdpReadRunnable);
@@ -57,12 +59,12 @@ public class IoUdpWriteRunnableTest
 
         DatagramSocket clientUdpSocket = new DatagramSocket();
 
-        IoUdpWriteRunnable<byte[]> ioUdpWriteRunnable = new IoUdpWriteRunnable<byte[]>(config, new RunnableEventListener()
+        IoUdpWriteRunnable<byte[]> ioUdpWriteRunnable = new IoUdpWriteRunnable<byte[]>(new InetSocketAddress(config.getIpAddress(), config.getUdpPort()), new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Write Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, clientUdpSocket);
 
@@ -81,16 +83,16 @@ public class IoUdpWriteRunnableTest
     @Test
     public void testSendObject() throws SocketException, InterruptedException
     {
-        ConnectionConfiguration config = ConnectionConfigFactory.createConnectionConfiguration("localhost", 9007, 9009, false);
+        ConnectionConfiguration config = ConnectionConfigFactory.createPPNConfig("localhost", 9007, 9009, false);
         final String message = "hello world2";
         DatagramSocket udpSocket = new DatagramSocket(config.getUdpPort());
         StringMessageProcessor messageProcessorImpl = new StringMessageProcessor();
         IoUdpReadRunnable<String> ioUdpReadRunnable = new IoUdpReadRunnable<String>(messageProcessorImpl, new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, udpSocket);
         Thread thread = new Thread(ioUdpReadRunnable);
@@ -99,12 +101,12 @@ public class IoUdpWriteRunnableTest
 
         DatagramSocket clientUdpSocket = new DatagramSocket();
 
-        IoUdpWriteRunnable<String> ioUdpWriteRunnable = new IoUdpWriteRunnable<String>(config, new RunnableEventListener()
+        IoUdpWriteRunnable<String> ioUdpWriteRunnable = new IoUdpWriteRunnable<String>(new InetSocketAddress(config.getIpAddress(), config.getUdpPort()), new RunnableEventListener()
         {
             @Override
-            public void onRunnableClosed()
+            public void onRunnableClosed(DisconnectState disconnectState)
             {
-                logger.debug("Write Close called");
+                logger.debug("Close called {}", disconnectState);
             }
         }, clientUdpSocket);
 
