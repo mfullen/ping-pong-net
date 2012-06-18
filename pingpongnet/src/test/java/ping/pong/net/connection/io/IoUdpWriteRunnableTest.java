@@ -41,7 +41,7 @@ public class IoUdpWriteRunnableTest
     @Test
     public void testSendByte() throws SocketException, InterruptedException
     {
-        ConnectionConfiguration config = ConnectionConfigFactory.createPPNConfig("localhost", 9007, 9009, false);
+        ConnectionConfiguration config = ConnectionConfigFactory.createPPNConfig("localhost", 9007, 9089, false);
         final String message = "hello world";
         DatagramSocket udpSocket = new DatagramSocket(config.getUdpPort());
         ByteMessageProcessorImpl messageProcessorImpl = new ByteMessageProcessorImpl();
