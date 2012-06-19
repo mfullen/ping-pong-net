@@ -1,9 +1,11 @@
 package ping.pong.net.connection.io;
 
-import java.io.DataInputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +15,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ReadFullyDataReader implements DataReader<byte[]>
 {
-    private DataInputStream inputStream = null;
+    private BufferedInputStream inputStream = null;
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadFullyDataReader.class);
+    private static final int INVALID_BYTE = -1;
+    private static final int SIZE_LENGTH = 4;
 
     public ReadFullyDataReader()
     {
@@ -25,7 +29,7 @@ public class ReadFullyDataReader implements DataReader<byte[]>
     {
         try
         {
-            this.inputStream = new DataInputStream(socket.getInputStream());
+            this.inputStream = new BufferedInputStream(socket.getInputStream());
         }
         catch (IOException ex)
         {
@@ -37,20 +41,24 @@ public class ReadFullyDataReader implements DataReader<byte[]>
     @Override
     public synchronized byte[] readData()
     {
+        byte[] buffer = null;
         int size = 0;
         try
         {
-            size = inputStream.readInt();
-        }
-        catch (IOException ex)
-        {
-            LOGGER.error("Error reading size", ex);
-        }
-        LOGGER.debug("Size: {}", size);
-        byte[] buffer = new byte[size];
-        try
-        {
-            this.inputStream.readFully(buffer);
+            byte[] sizeBuffer = new byte[SIZE_LENGTH];
+            int nextByte = inputStream.read(sizeBuffer);
+            if (nextByte != INVALID_BYTE)
+            {
+                ByteBuffer byteBuffer = ByteBuffer.wrap(sizeBuffer);
+                if (byteBuffer.order().equals(ByteOrder.LITTLE_ENDIAN))
+                {
+                    LOGGER.debug("SizeBuffer was Little endian");
+                }
+                size = byteBuffer.order(ByteOrder.BIG_ENDIAN).getInt();
+                LOGGER.debug("Size: {}", size);
+                buffer = new byte[size];
+                this.inputStream.read(buffer);
+            }
         }
         catch (IOException ex)
         {

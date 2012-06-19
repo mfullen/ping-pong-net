@@ -1,9 +1,10 @@
 package ping.pong.net.connection.io;
 
-import java.io.DataOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WriteByteArrayDataWriter implements DataWriter<byte[]>
 {
-    private DataOutputStream outputStream = null;
+    private BufferedOutputStream outputStream = null;
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteByteArrayDataWriter.class);
 
     @Override
@@ -21,7 +22,7 @@ public class WriteByteArrayDataWriter implements DataWriter<byte[]>
     {
         try
         {
-            this.outputStream = new DataOutputStream(socket.getOutputStream());
+            this.outputStream = new BufferedOutputStream(socket.getOutputStream());
             this.outputStream.flush();
         }
         catch (IOException ex)
@@ -37,8 +38,8 @@ public class WriteByteArrayDataWriter implements DataWriter<byte[]>
         try
         {
             LOGGER.trace("About to write Object to Stream {}", data);
-            this.outputStream.writeInt(data.length);
-            this.outputStream.flush();
+            byte[] size = ByteBuffer.allocate(4).putInt(data.length).array();
+            this.outputStream.write(size);
             this.outputStream.write(data);
             this.outputStream.flush();
             LOGGER.trace("Wrote {} to stream", data);
