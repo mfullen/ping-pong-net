@@ -22,7 +22,6 @@ public class DefaultConnectionConfigurationTest
     @Ignore
     public void testFindKeyStorePath()
     {
-        System.out.println("findKeyStorePath");
         String filepath = "";
         String expResult = "";
         String result = DefaultConnectionConfiguration.findKeyStorePath(filepath);

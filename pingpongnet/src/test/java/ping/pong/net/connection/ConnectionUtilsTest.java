@@ -67,13 +67,11 @@ public class ConnectionUtilsTest
     {
         {
             byte[] result = ConnectionUtils.getbytes(new Integer(5));
-            System.out.println("result.length = " + result.length);
             assertEquals("-84, -19, 0, 5, 115, 114, 0, 17, 106, 97, 118, 97, 46, 108, 97, 110, 103, 46, 73, 110, 116, 101, 103, 101, 114, 18, -30, -96, -92, -9, -127, -121, 56, 2, 0, 1, 73, 0, 5, 118, 97, 108, 117, 101, 120, 114, 0, 16, 106, 97, 118, 97, 46, 108, 97, 110, 103, 46, 78, 117, 109, 98, 101, 114, -122, -84, -107, 29, 11, -108, -32, -117, 2, 0, 0, 120, 112, 0, 0, 0, 5",
                          byteArrayToString(result));
         }
         {
             byte[] result = ConnectionUtils.getbytes("abcd");
-            System.out.println("result.length = " + result.length);
             assertEquals("-84, -19, 0, 5, 116, 0, 4, 97, 98, 99, 100", byteArrayToString(result));
         }
     }
