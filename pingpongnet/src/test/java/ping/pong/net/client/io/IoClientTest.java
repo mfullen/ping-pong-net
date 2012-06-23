@@ -4,15 +4,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Ignore;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.DisconnectInfo;
-import ping.pong.net.connection.io.DataReader;
-import ping.pong.net.connection.io.DataWriter;
 import ping.pong.net.connection.io.ReadFullyDataReader;
 import ping.pong.net.connection.io.WriteByteArrayDataWriter;
-import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.io.IoServer;
@@ -76,7 +72,7 @@ public class IoClientTest
 
         synchronized (this)
         {
-            this.wait(300);
+            this.wait();
         }
         instance.start();
         assertTrue(instance.isConnected());
@@ -115,7 +111,7 @@ public class IoClientTest
 
         synchronized (this)
         {
-            this.wait(100);
+            this.wait();
         }
         instance.start();
         assertTrue(instance.isConnected());
@@ -157,7 +153,7 @@ public class IoClientTest
 
         synchronized (this)
         {
-            this.wait(10);
+            this.wait();
         }
         instance.start();
         assertTrue(instance.isConnected());
@@ -207,7 +203,7 @@ public class IoClientTest
 
         synchronized (this)
         {
-            this.wait(100);
+            this.wait();
         }
         instance.start();
         assertTrue(instance.isConnected());
@@ -328,7 +324,7 @@ public class IoClientTest
         instance.sendMessage(EnvelopeFactory.createTcpEnvelope("Hello World"));
         synchronized (this)
         {
-            this.wait(300);
+            this.wait();
         }
         instance.sendMessage(EnvelopeFactory.createTcpEnvelope("Hello World"));
         assertTrue(instance.isConnected());
@@ -336,7 +332,7 @@ public class IoClientTest
         server.broadcast(EnvelopeFactory.createTcpEnvelope("Hello Client"));
         synchronized (this)
         {
-            this.wait(10);
+            this.wait();
         }
         instance.close();
         server.shutdown();
