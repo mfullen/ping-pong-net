@@ -78,7 +78,7 @@ public class WriteByteArrayDataWriterTest
                     ReadFullyDataReader readFullyDataReader = new ReadFullyDataReader();
                     readFullyDataReader.init(SocketFactory.getDefault().createSocket("localhost", 10122));
                     int i = 0;
-                    while (running)
+                    while (i <= 9)
                     {
                         byte[] readData = readFullyDataReader.readData();
                         LOGGER.debug("ReadData: " + readData);
@@ -99,8 +99,8 @@ public class WriteByteArrayDataWriterTest
         Thread readerThread = new Thread(reader);
         readerThread.start();
 
-        serverThread.join(100);
-        readerThread.join(150);
+        serverThread.join();
+        readerThread.join();
 
         int i = 0;
         for (int j = 0; j < results.length; j++, i++)
