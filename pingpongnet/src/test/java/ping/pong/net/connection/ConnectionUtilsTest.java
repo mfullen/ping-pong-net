@@ -1,11 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ping.pong.net.connection;
 
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  *
@@ -73,6 +69,16 @@ public class ConnectionUtilsTest
         {
             byte[] result = ConnectionUtils.getbytes("abcd");
             assertEquals("-84, -19, 0, 5, 116, 0, 4, 97, 98, 99, 100", byteArrayToString(result));
+        }
+        {
+            byte[] result = ConnectionUtils.getbytes(new Integer(5));
+            assertEquals(new Integer(5), ConnectionUtils.getObject(result));
+            assertTrue(new Integer(6) != ConnectionUtils.getObject(result));
+        }
+        {
+            byte[] result = ConnectionUtils.getbytes("a1");
+            assertEquals("a1", ConnectionUtils.getObject(result));
+            assertTrue("b2" != ConnectionUtils.getObject(result));
         }
     }
 
