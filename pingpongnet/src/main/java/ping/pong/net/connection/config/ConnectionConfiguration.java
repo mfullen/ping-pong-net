@@ -9,11 +9,15 @@ public interface ConnectionConfiguration
     /**
      * Default Keystore name for a key on the classpath
      */
-    String DEFAULT_KEY_STORE = "key.ks";
+    String DEFAULT_KEY_STORE = "PPN-key";
     /**
      * Default password for the keystore
      */
     String DEFAULT_KEY_STORE_PASSWORD = "pingpong123";
+    /**
+     * The name of the default Certificate
+     */
+    String DEFAULT_CERT = "PPN-cert";
     /**
      * To turn off UDP for your connection
      */
