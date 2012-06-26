@@ -131,6 +131,7 @@ public class ServerConnectionManagerTest
     }
 
     @Test
+    @Ignore
     public void testRunAcceptedSocketSSL() throws IOException,
                                                   InterruptedException,
                                                   URISyntaxException,

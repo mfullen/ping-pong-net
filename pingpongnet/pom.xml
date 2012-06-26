@@ -94,27 +94,76 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>keytool-maven-plugin</artifactId>
-                        <version>1.1</version>
+                        <version>1.2</version>
                         <executions>
                             <execution>
+                                <id>generateKeyPair</id>
                                 <goals>
-                                    <goal>genkey</goal>
+                                    <goal>generateKeyPair</goal>
                                 </goals>
+                                <phase>generate-resources</phase>
+                            </execution>
+                            <execution>
+                                <id>cert-request</id>
+                                <goals>
+                                    <goal>generateCertificateRequest</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                            </execution>
+<!--                            <execution>
+                                <id>gen-cert</id>
+                                <goals>
+                                    <goal>generateCertificate</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                            </execution>-->
+<!--                            <execution>
+                                <id>deleteAlias</id>
+                                <goals>
+                                    <goal>deleteAlias</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                            </execution>-->
+                            <execution>
+                                <id>clean</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>export</id>
+                                <goals>
+                                    <goal>exportCertificate</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
+                            </execution>
+                            <execution>
+                                <id>print</id>
+                                <goals>
+                                    <goal>printCertificate</goal>
+                                </goals>
+                                <phase>generate-resources</phase>
                             </execution>
                         </executions>
                         <configuration>
-                            <keystore>src/main/resources/key</keystore>
+                            <keystore>${basedir}/src/main/resources/PPN-key</keystore>
+                            <file>${basedir}/src/main/resources/PPN-cert</file>
                             <dname>cn=https://github.com/mfullen/ping-pong-net, ou=None, L=Melbourne, ST=Florida, o=pingpongnet, c=US</dname>
                             <keypass>pingpong123</keypass>
                             <storepass>pingpong123</storepass>
                             <validity>999999</validity>
                             <alias>pingpongdefault</alias>
-
+                            <sigalg>SHA1withDSA</sigalg>
+                            <keyalg>DSA</keyalg>
+                            <keysize>1024</keysize>
+                            <inFile>${basedir}/src/main/resources/PPN-cert</inFile>
+                            <outFile>${basedir}/src/main/resources/exportCertificate</outFile>
+                            <verbose>true</verbose>
                         </configuration>
                     </plugin>
                 </plugins>
             </build>
         </profile>
-
     </profiles>
 </project>
