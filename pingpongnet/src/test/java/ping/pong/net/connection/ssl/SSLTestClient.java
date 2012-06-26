@@ -27,6 +27,39 @@ public class SSLTestClient
 {
     public static void main(String[] args)
     {
+        clientWithKeyStores();
+        clientWithoutKeyStore();
+    }
+
+    public static void clientWithoutKeyStore()
+    {
+        try
+        {
+            SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            SSLSocket clientSocket = (SSLSocket) factory.createSocket("localhost", 5011);
+            clientSocket.setSoTimeout(5000);
+            clientSocket.addHandshakeCompletedListener(new HandshakeCompletedListener()
+            {
+                @Override
+                public void handshakeCompleted(HandshakeCompletedEvent hce)
+                {
+                    System.out.println("Handshake complete");
+                }
+            });
+            clientSocket.startHandshake();
+
+
+
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public static void clientWithKeyStores()
+    {
         try
         {
             SSLContext ctx = SSLContext.getInstance("SSLv3");

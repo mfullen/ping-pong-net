@@ -2,10 +2,13 @@ package ping.pong.net.connection.ssl;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,18 +29,22 @@ import ping.pong.net.connection.config.ConnectionConfiguration;
  */
 public class SSLTestServer
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws FileNotFoundException,
+                                                  NoSuchAlgorithmException,
+                                                  KeyManagementException,
+                                                  Exception
     {
-        try
-        {
-            SSLContext ctx = SSLContext.getInstance("SSLv3");
-            TrustManager[] trustManagers = getTrustManagers("JKS", new FileInputStream(getPath(ConnectionConfiguration.DEFAULT_KEY_STORE)), ConnectionConfiguration.DEFAULT_KEY_STORE_PASSWORD);
-            KeyManager[] keyManagers = getKeyManagers("JKS", new FileInputStream(getPath(ConnectionConfiguration.DEFAULT_KEY_STORE)), ConnectionConfiguration.DEFAULT_KEY_STORE_PASSWORD);
-            ctx.init(keyManagers, trustManagers, new SecureRandom());
-            SSLServerSocketFactory factory = ctx.getServerSocketFactory();
-            ServerSocket serverSocket = factory.createServerSocket(5011);
 
-            while (true)
+        SSLContext ctx = SSLContext.getInstance("SSLv3");
+        TrustManager[] trustManagers = getTrustManagers("JKS", new FileInputStream(getPath(ConnectionConfiguration.DEFAULT_KEY_STORE)), ConnectionConfiguration.DEFAULT_KEY_STORE_PASSWORD);
+        KeyManager[] keyManagers = getKeyManagers("JKS", new FileInputStream(getPath(ConnectionConfiguration.DEFAULT_KEY_STORE)), ConnectionConfiguration.DEFAULT_KEY_STORE_PASSWORD);
+        ctx.init(keyManagers, trustManagers, new SecureRandom());
+        SSLServerSocketFactory factory = ctx.getServerSocketFactory();
+        ServerSocket serverSocket = factory.createServerSocket(5011);
+
+        while (true)
+        {
+            try
             {
                 SSLSocket accept = (SSLSocket) serverSocket.accept();
                 accept.addHandshakeCompletedListener(new HandshakeCompletedListener()
@@ -51,11 +58,10 @@ public class SSLTestServer
                 accept.startHandshake();
                 System.out.println("SocketAccepted");
             }
-
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -65,6 +71,8 @@ public class SSLTestServer
         try
         {
             path = new File(Thread.currentThread().getContextClassLoader().getResource(filename).toURI()).getAbsolutePath();
+
+
         }
         catch (URISyntaxException ex)
         {
