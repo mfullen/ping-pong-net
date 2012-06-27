@@ -7,6 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.*;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.server.Server;
+import ping.pong.net.server.io.IoServer;
 
 /**
  *
@@ -18,6 +20,20 @@ public class SSLTestServer
                                                   NoSuchAlgorithmException,
                                                   KeyManagementException,
                                                   Exception
+    {
+        usePPNServer();
+    }
+
+    public static void usePPNServer()
+    {
+        Server<String> server = new IoServer<String>(ConnectionConfigFactory.createPPNServerConfig(2011, true));
+        server.start();
+    }
+
+    public static void createCustomServer() throws FileNotFoundException,
+                                                   NoSuchAlgorithmException,
+                                                   KeyManagementException,
+                                                   Exception
     {
         ConnectionConfiguration config = ConnectionConfigFactory.createPPNServerConfig(2011, true);
         SSLContext ctx = SSLUtils.createSSLContext("SSLv3", config);// SSLContext.getInstance("SSLv3");
