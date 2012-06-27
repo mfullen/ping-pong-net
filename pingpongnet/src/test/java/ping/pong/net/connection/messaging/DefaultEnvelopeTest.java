@@ -13,7 +13,6 @@ import org.junit.Test;
  */
 public class DefaultEnvelopeTest
 {
-
     /**
      * Test of Reliable methods, of class DefaultEnvelope.
      */
