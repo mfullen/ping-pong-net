@@ -3,15 +3,12 @@ package ping.pong.net.server.io;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
 import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
-import ping.pong.net.connection.io.DataReader;
-import ping.pong.net.connection.io.DataWriter;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoConnection;
-import ping.pong.net.connection.io.IoUdpReadRunnable;
+import ping.pong.net.connection.io.DataReader;
+import ping.pong.net.connection.io.DataWriter;
 import ping.pong.net.connection.io.IoUdpWriteRunnable;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 

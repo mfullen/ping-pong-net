@@ -49,7 +49,7 @@ public class DefaultConnectionConfigurationTest
     public void testGetKeystorePath()
     {
         DefaultConnectionConfiguration instance = new DefaultConnectionConfiguration();
-        assertEquals(null, instance.getKeystorePath());
+        assertEquals(ConnectionConfiguration.DEFAULT_KEY_STORE, instance.getKeystorePath());
         instance.setKeystorePath("kspath");
         assertEquals("kspath", instance.getKeystorePath());
     }

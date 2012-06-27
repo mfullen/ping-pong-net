@@ -14,6 +14,7 @@ import ping.pong.net.connection.RunnableEventListener;
 
 /**
  *
+ * @param <MessageType>
  * @author mfullen
  */
 public class IoUdpWriteRunnable<MessageType> extends AbstractIoUdpRunnable
@@ -31,6 +32,12 @@ public class IoUdpWriteRunnable<MessageType> extends AbstractIoUdpRunnable
      */
     protected InetSocketAddress address = null;
 
+    /**
+     *
+     * @param address
+     * @param runnableEventListener
+     * @param udpSocket
+     */
     public IoUdpWriteRunnable(InetSocketAddress address, RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
         super(runnableEventListener, udpSocket);

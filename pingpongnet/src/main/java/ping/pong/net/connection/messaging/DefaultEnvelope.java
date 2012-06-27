@@ -2,6 +2,7 @@ package ping.pong.net.connection.messaging;
 
 /**
  *
+ * @param <Message>
  * @author mfullen
  */
 public class DefaultEnvelope<Message> implements Envelope<Message>
@@ -9,11 +10,19 @@ public class DefaultEnvelope<Message> implements Envelope<Message>
     private boolean reliable = true;
     private Message message;
 
+    /**
+     *
+     * @param reliable
+     */
     public void setReliable(boolean reliable)
     {
         this.reliable = reliable;
     }
 
+    /**
+     *
+     * @param message
+     */
     public void setMessage(Message message)
     {
         this.message = message;

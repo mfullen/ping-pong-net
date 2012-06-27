@@ -1,13 +1,14 @@
 package ping.pong.net.connection;
 
 import java.net.SocketAddress;
-import ping.pong.net.connection.messaging.MessageSender;
 import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageSender;
 
 /**
  * A Connection interface represent what an Active connection between sockets
  * is.
  *
+ * @param <Message>
  * @author mfullen
  */
 public interface Connection<Message> extends
@@ -35,6 +36,7 @@ public interface Connection<Message> extends
 
     /**
      * Set the connection Id
+     * @param id
      */
     void setConnectionId(int id);
 

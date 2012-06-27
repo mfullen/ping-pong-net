@@ -28,8 +28,16 @@ public abstract class AbstractIoUdpRunnable implements Runnable
      * Notifies the listener when this runnable is closed
      */
     protected RunnableEventListener runnableEventListener = null;
+    /**
+     *
+     */
     protected DisconnectState disconnectState = DisconnectState.NORMAL;
 
+    /**
+     *
+     * @param runnableEventListener
+     * @param udpSocket
+     */
     public AbstractIoUdpRunnable(RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
         this.udpSocket = udpSocket;
@@ -45,6 +53,9 @@ public abstract class AbstractIoUdpRunnable implements Runnable
         return this.running;
     }
 
+    /**
+     *
+     */
     public synchronized void close()
     {
         this.running = false;
@@ -66,6 +77,10 @@ public abstract class AbstractIoUdpRunnable implements Runnable
         }
     }
 
+    /**
+     *
+     * @param disconnectState
+     */
     public synchronized void setDisconnectState(DisconnectState disconnectState)
     {
         this.disconnectState = disconnectState;

@@ -2,6 +2,7 @@ package ping.pong.net.connection.messaging;
 
 /**
  *
+ * @param <Message>
  * @author mfullen
  */
 public interface Envelope<Message extends Object>

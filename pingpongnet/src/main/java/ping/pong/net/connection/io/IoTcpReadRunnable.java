@@ -3,13 +3,12 @@ package ping.pong.net.connection.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
-import ping.pong.net.connection.messaging.MessageProcessor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.ConnectionExceptionHandler;
 import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
+import ping.pong.net.connection.messaging.MessageProcessor;
 
 /**
  * IoTcpReadRunnable is a thread for reading messages from an input stream.

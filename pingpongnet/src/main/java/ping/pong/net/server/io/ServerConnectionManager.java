@@ -1,30 +1,29 @@
 package ping.pong.net.server.io;
 
-import ping.pong.net.connection.io.DataWriter;
-import ping.pong.net.connection.io.DataReader;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.net.ServerSocketFactory;
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.*;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoUdpRunnable;
+import ping.pong.net.connection.io.DataReader;
+import ping.pong.net.connection.io.DataWriter;
+import ping.pong.net.connection.messaging.ConnectionIdMessage;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
-import ping.pong.net.connection.messaging.ConnectionIdMessage;
+import ping.pong.net.connection.ssl.SSLUtils;
 
 /**
  *
@@ -117,13 +116,9 @@ class ServerConnectionManager<MessageType> implements Runnable
     {
         try
         {
-            if (configuration.isSsl())
-            {
-                System.setProperty("javax.net.ssl.keyStore", configuration.getKeystorePath());
-                System.setProperty("javax.net.ssl.keyStorePassword", configuration.getKeystorePassword());
-            }
-
-            ServerSocketFactory socketFactory = configuration.isSsl() ? SSLServerSocketFactory.getDefault() : ServerSocketFactory.getDefault();
+            ServerSocketFactory socketFactory = configuration.isSsl()
+                    ? SSLUtils.createSSLContext(configuration).getServerSocketFactory()
+                    : ServerSocketFactory.getDefault();
 
             try
             {
@@ -176,10 +171,26 @@ class ServerConnectionManager<MessageType> implements Runnable
                 try
                 {
                     acceptingSocket = tcpServerSocket.accept();
+                    if (configuration.isSsl())
+                    {
+                        SSLSocket sslAccepted = (SSLSocket) acceptingSocket;
+                        sslAccepted.addHandshakeCompletedListener(new HandshakeCompletedListener()
+                        {
+                            @Override
+                            public void handshakeCompleted(HandshakeCompletedEvent hce)
+                            {
+                                LOGGER.debug("Handshake Completed");
+                            }
+                        });
+                        sslAccepted.startHandshake();
+                    }
                 }
                 catch (IOException ex)
                 {
                     ConnectionExceptionHandler.handleException(ex, LOGGER);
+                    //TODO: the thread listening for connections probably
+                    //shouldn't shut down if there is an exception accepting the
+                    //socket
                     this.shutdown();
                 }
                 if (acceptingSocket != null)

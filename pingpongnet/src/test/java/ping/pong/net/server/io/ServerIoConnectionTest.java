@@ -1,13 +1,13 @@
 package ping.pong.net.server.io;
 
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import ping.pong.net.connection.ConnectionEvent;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.messaging.DisconnectMessage;
-import static org.junit.Assert.*;
-import org.junit.Ignore;
 
 /**
  *

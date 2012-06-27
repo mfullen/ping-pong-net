@@ -17,6 +17,7 @@ import ping.pong.net.connection.messaging.MessageProcessor;
 
 /**
  *
+ * @param <MessageType>
  * @author mfullen
  */
 public class IoUdpReadRunnable<MessageType> extends AbstractIoUdpRunnable
@@ -31,6 +32,12 @@ public class IoUdpReadRunnable<MessageType> extends AbstractIoUdpRunnable
      */
     protected MessageProcessor<MessageType> messageProcessor = null;
 
+    /**
+     *
+     * @param messageProcessor
+     * @param runnableEventListener
+     * @param udpSocket
+     */
     public IoUdpReadRunnable(MessageProcessor<MessageType> messageProcessor, RunnableEventListener runnableEventListener, DatagramSocket udpSocket)
     {
         super(runnableEventListener, udpSocket);

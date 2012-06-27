@@ -2,6 +2,7 @@ package ping.pong.net.connection;
 
 /**
  * Connection Events happen inside of the connection to alert listeners
+ * @param <MessageType>
  */
 public interface ConnectionEvent<MessageType>
 {

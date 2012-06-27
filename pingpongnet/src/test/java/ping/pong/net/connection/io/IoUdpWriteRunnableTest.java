@@ -1,20 +1,20 @@
 package ping.pong.net.connection.io;
 
+import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
-import ping.pong.net.connection.DisconnectState;
 import java.net.SocketException;
+import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.net.DatagramSocket;
+import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageProcessor;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import ping.pong.net.connection.config.ConnectionConfigFactory;
-import static org.junit.Assert.*;
 
 /**
  *
