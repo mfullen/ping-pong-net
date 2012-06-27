@@ -1,7 +1,5 @@
 package ping.pong.net.client.io;
 
-import ping.pong.net.connection.io.WriteByteArrayDataWriter;
-import ping.pong.net.connection.io.ReadFullyDataReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,9 +11,13 @@ import javax.net.ServerSocketFactory;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
-import ping.pong.net.connection.*;
+import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.ConnectionExceptionHandler;
+import ping.pong.net.connection.DisconnectInfo;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.io.ReadFullyDataReader;
+import ping.pong.net.connection.io.WriteByteArrayDataWriter;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.Server;

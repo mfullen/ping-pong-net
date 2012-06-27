@@ -1,7 +1,7 @@
 package ping.pong.net.connection;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
  */
 public class ConnectionUtilsTest
 {
-    
+
 
     /**
      * Test of compressfinal method, of class ConnectionUtils.
@@ -92,8 +92,8 @@ public class ConnectionUtilsTest
         Integer result = (Integer)ConnectionUtils.getObject(bytes);
         assertEquals(5, (int)result);
     }
-    
-    
+
+
     protected static String byteArrayToString(byte[] byteArray)
     {
         String str = "";
@@ -107,5 +107,5 @@ public class ConnectionUtilsTest
         }
         return str;
     }
-    
+
 }

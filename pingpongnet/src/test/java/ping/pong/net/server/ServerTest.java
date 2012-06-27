@@ -6,12 +6,11 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import ping.pong.net.connection.Connection;
-import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.io.IoServer;
 
 /**

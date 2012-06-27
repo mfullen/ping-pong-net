@@ -1,21 +1,17 @@
 package ping.pong.net.connection.io;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.UnknownHostException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.DisconnectState;
 import ping.pong.net.connection.RunnableEventListener;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageProcessor;
-import static org.junit.Assert.*;
 
 /**
  *

@@ -1,8 +1,8 @@
 package ping.pong.net.connection;
 
 import java.net.SocketAddress;
-import ping.pong.net.connection.messaging.MessageSender;
 import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageSender;
 
 /**
  * A Connection interface represent what an Active connection between sockets

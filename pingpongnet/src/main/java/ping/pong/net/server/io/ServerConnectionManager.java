@@ -1,15 +1,8 @@
 package ping.pong.net.server.io;
 
-import ping.pong.net.connection.io.DataWriter;
-import ping.pong.net.connection.io.DataReader;
 import java.io.IOException;
 import java.io.StreamCorruptedException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -22,9 +15,11 @@ import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.*;
 import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.AbstractIoUdpRunnable;
+import ping.pong.net.connection.io.DataReader;
+import ping.pong.net.connection.io.DataWriter;
+import ping.pong.net.connection.messaging.ConnectionIdMessage;
 import ping.pong.net.connection.messaging.EnvelopeFactory;
 import ping.pong.net.connection.messaging.MessageListener;
-import ping.pong.net.connection.messaging.ConnectionIdMessage;
 
 /**
  *

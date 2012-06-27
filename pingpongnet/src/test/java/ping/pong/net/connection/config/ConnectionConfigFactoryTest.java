@@ -4,8 +4,9 @@
  */
 package ping.pong.net.connection.config;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  *

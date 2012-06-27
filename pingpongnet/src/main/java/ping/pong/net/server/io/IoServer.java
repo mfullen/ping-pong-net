@@ -1,18 +1,14 @@
 package ping.pong.net.server.io;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.DataReader;
 import ping.pong.net.connection.io.DataWriter;
-import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.Server;
