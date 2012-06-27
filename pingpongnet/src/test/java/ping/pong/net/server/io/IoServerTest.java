@@ -1,17 +1,17 @@
 package ping.pong.net.server.io;
 
 import java.net.SocketAddress;
-import ping.pong.net.connection.messaging.MessageListener;
-import ping.pong.net.connection.config.ConnectionConfigFactory;
-import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.messaging.Envelope;
 import org.junit.AfterClass;
+import static org.junit.Assert.*;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.*;
-import ping.pong.net.connection.*;
+import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.messaging.Envelope;
+import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.Server;
 import ping.pong.net.server.ServerConnectionListener;
 

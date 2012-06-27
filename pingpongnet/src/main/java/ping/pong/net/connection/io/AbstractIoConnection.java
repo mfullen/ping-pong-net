@@ -1,7 +1,5 @@
 package ping.pong.net.connection.io;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -10,7 +8,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
@@ -25,6 +22,7 @@ import ping.pong.net.connection.messaging.MessageProcessor;
 /**
  * AbstractIoConnection represents a basic Io Connection
  *
+ * @param <MessageType>
  * @author mfullen
  */
 public abstract class AbstractIoConnection<MessageType> implements
@@ -75,6 +73,9 @@ public abstract class AbstractIoConnection<MessageType> implements
      * The Tcp Socket used for this connection
      */
     protected Socket tcpSocket = null;
+    /**
+     *
+     */
     protected boolean usingCustomSerialization = true;
     /**
      * Flag for whether the connection has been closed
@@ -88,6 +89,9 @@ public abstract class AbstractIoConnection<MessageType> implements
      * Flag for whether UDP is enabled or not
      */
     protected boolean udpEnabled = false;
+    /**
+     *
+     */
     protected SocketAddress socketAddress = null;
     /**
      *  Data reader.
@@ -98,6 +102,13 @@ public abstract class AbstractIoConnection<MessageType> implements
      */
     private DataWriter dataWriter = null;
 
+    /**
+     *
+     * @param config
+     * @param dataReader
+     * @param dataWriter
+     * @param tcpSocket
+     */
     public AbstractIoConnection(ConnectionConfiguration config, DataReader dataReader, DataWriter dataWriter, Socket tcpSocket)
     {
         this.config = config;
@@ -108,6 +119,10 @@ public abstract class AbstractIoConnection<MessageType> implements
         this.canStart = initTcp;
     }
 
+    /**
+     *
+     * @param message
+     */
     protected abstract void processMessage(MessageType message);
 
     /**
@@ -204,6 +219,9 @@ public abstract class AbstractIoConnection<MessageType> implements
         return usingCustomSerialization;
     }
 
+    /**
+     *
+     */
     protected void disconnect()
     {
         this.receiveQueue.add((MessageType) new DisconnectMessage());
@@ -242,6 +260,9 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
     }
 
+    /**
+     *
+     */
     protected synchronized void fireOnSocketClosed()
     {
         for (ConnectionEvent connectionEvent : this.connectionEventListeners)
@@ -250,6 +271,9 @@ public abstract class AbstractIoConnection<MessageType> implements
         }
     }
 
+    /**
+     *
+     */
     protected void startConnection()
     {
         if (this.canStart)
@@ -294,21 +318,37 @@ public abstract class AbstractIoConnection<MessageType> implements
         this.close();
     }
 
+    /**
+     *
+     * @return
+     */
     protected String getConnectionName()
     {
         return "Connection (" + this.getConnectionId() + "):";
     }
 
+    /**
+     *
+     * @return
+     */
     protected boolean isAnyRunning()
     {
         return this.isTcpReadRunning() || this.isTcpWriteRunning();
     }
 
+    /**
+     *
+     * @return
+     */
     protected boolean isTcpWriteRunning()
     {
         return this.ioTcpWriteRunnable != null && this.ioTcpWriteRunnable.isRunning();
     }
 
+    /**
+     *
+     * @return
+     */
     protected boolean isTcpReadRunning()
     {
         return this.ioTcpReadRunnable != null && this.ioTcpReadRunnable.isRunning();

@@ -20,6 +20,9 @@ public class ReadFullyDataReader implements DataReader<byte[]>
     private static final int INVALID_BYTE = -1;
     private static final int SIZE_LENGTH = 4;
 
+    /**
+     *
+     */
     public ReadFullyDataReader()
     {
     }

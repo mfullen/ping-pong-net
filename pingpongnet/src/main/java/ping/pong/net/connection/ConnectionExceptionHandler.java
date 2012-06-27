@@ -1,12 +1,7 @@
 package ping.pong.net.connection;
 
 import java.io.EOFException;
-import java.net.BindException;
-import java.net.ConnectException;
-import java.net.NoRouteToHostException;
-import java.net.PortUnreachableException;
-import java.net.SocketException;
-
+import java.net.*;
 import javax.net.ssl.SSLException;
 import org.slf4j.Logger;
 
@@ -23,6 +18,8 @@ public final class ConnectionExceptionHandler
     /**
      *
      * @param ex
+     * @param logger
+     * @return
      */
     public static DisconnectState handleException(final Exception ex, Logger logger)
     {

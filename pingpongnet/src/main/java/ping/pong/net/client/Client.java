@@ -6,6 +6,7 @@ import ping.pong.net.connection.messaging.MessageSender;
 
 /**
  * Client interface to control a client connection
+ * @param <Message>
  * @author mfullen
  */
 public interface Client<Message> extends

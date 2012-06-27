@@ -5,6 +5,7 @@ import java.net.Socket;
 
 /**
  * Custom way to read Data from a TCP socket
+ * @param <Type>
  * @author mfullen
  */
 public interface DataReader<Type>

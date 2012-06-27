@@ -1,18 +1,14 @@
 package ping.pong.net.server.io;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.connection.Connection;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.DataReader;
 import ping.pong.net.connection.io.DataWriter;
-import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.Server;
@@ -20,25 +16,57 @@ import ping.pong.net.server.ServerConnectionListener;
 
 /**
  *
+ * @param <MessageType>
  * @author mfullen
  */
 public class IoServer<MessageType> implements
         Server<MessageType>
 {
+    /**
+     *
+     */
     public static final Logger LOGGER = LoggerFactory.getLogger(IoServer.class);
+    /**
+     *
+     */
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
+    /**
+     *
+     */
     protected ServerConnectionManager<MessageType> serverConnectionManager = null;
+    /**
+     *
+     */
     protected ConnectionConfiguration config = null;
+    /**
+     *
+     */
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
+    /**
+     *
+     */
     protected List<ServerConnectionListener> connectionListeners = new ArrayList<ServerConnectionListener>();
+    /**
+     *
+     */
     protected DataReader customDataReader = null;
+    /**
+     *
+     */
     protected DataWriter customDataWriter = null;
 
+    /**
+     *
+     */
     public IoServer()
     {
         this(ConnectionConfigFactory.createConnectionConfiguration());
     }
 
+    /**
+     *
+     * @param config
+     */
     public IoServer(ConnectionConfiguration config)
     {
         this.config = config;
@@ -235,6 +263,7 @@ public class IoServer<MessageType> implements
 
     /**
      * Set the custom Data Reader used to read messages from a TCP socket
+     *
      * @param customDataReader the reader to set
      */
     public void setCustomDataReader(DataReader customDataReader)
@@ -244,6 +273,7 @@ public class IoServer<MessageType> implements
 
     /**
      * Set the custom Data writer used to write messages to a TCP socket
+     *
      * @param customDataWriter
      */
     public void setCustomDataWriter(DataWriter customDataWriter)

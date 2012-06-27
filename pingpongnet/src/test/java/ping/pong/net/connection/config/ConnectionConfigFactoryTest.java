@@ -4,8 +4,9 @@
  */
 package ping.pong.net.connection.config;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  *
@@ -13,12 +14,10 @@ import static org.junit.Assert.*;
  */
 public class ConnectionConfigFactoryTest
 {
-
     /**
      * Test of createPPNConfig method, of class ConnectionConfigFactory.
      */
     @Test
-    @Ignore // TODO: this test fails because the code looks for a keystore file in the classpath
     public void testCreatePPNConfig()
     {
         ConnectionConfiguration result = ConnectionConfigFactory.createPPNConfig("myip", 1, 2, true);
@@ -32,7 +31,6 @@ public class ConnectionConfigFactoryTest
      * Test of createPPNServerConfig method, of class ConnectionConfigFactory.
      */
     @Test
-    @Ignore // TODO: this test fails because the code looks for a keystore file in the classpath
     public void testCreatePPNServerConfig_3args()
     {
         ConnectionConfiguration result = ConnectionConfigFactory.createPPNServerConfig(1, 2, true);
@@ -45,7 +43,6 @@ public class ConnectionConfigFactoryTest
      * Test of createPPNServerConfig method, of class ConnectionConfigFactory.
      */
     @Test
-    @Ignore // TODO: this test fails because the code looks for a keystore file in the classpath
     public void testCreatePPNServerConfig_int_boolean()
     {
         ConnectionConfiguration result = ConnectionConfigFactory.createPPNServerConfig(1, true);
@@ -72,7 +69,6 @@ public class ConnectionConfigFactoryTest
      * Test of createPPNClientConfig method, of class ConnectionConfigFactory.
      */
     @Test
-    @Ignore // TODO: this test fails because the code looks for a keystore file in the classpath
     public void testCreatePPNClientConfig_4args()
     {
         ConnectionConfiguration result = ConnectionConfigFactory.createPPNClientConfig("myip", 1, 2, true);
@@ -86,7 +82,6 @@ public class ConnectionConfigFactoryTest
      * Test of createPPNClientConfig method, of class ConnectionConfigFactory.
      */
     @Test
-    @Ignore // TODO: this test fails because the code looks for a keystore file in the classpath
     public void testCreatePPNClientConfig_3args()
     {
         ConnectionConfiguration result = ConnectionConfigFactory.createPPNClientConfig("myip", 1, true);
@@ -110,7 +105,8 @@ public class ConnectionConfigFactoryTest
     }
 
     /**
-     * Test of createConnectionConfiguration method, of class ConnectionConfigFactory.
+     * Test of createConnectionConfiguration method, of class
+     * ConnectionConfigFactory.
      */
     @Test
     public void testCreateConnectionConfiguration()

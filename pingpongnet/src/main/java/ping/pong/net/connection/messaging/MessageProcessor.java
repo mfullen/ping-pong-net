@@ -2,6 +2,7 @@ package ping.pong.net.connection.messaging;
 
 /**
  * This interfaces provides methods to process messages to the queues
+ * @param <Message>
  * @author mfullen
  */
 public interface MessageProcessor<Message>

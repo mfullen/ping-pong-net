@@ -6,11 +6,10 @@ import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertFalse;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.config.DefaultConnectionConfiguration;
 import ping.pong.net.connection.messaging.DisconnectMessage;
 
 /**

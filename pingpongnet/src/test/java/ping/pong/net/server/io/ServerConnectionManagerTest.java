@@ -2,28 +2,28 @@ package ping.pong.net.server.io;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.Socket;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.SSLSocket;
-import java.net.DatagramSocket;
-import java.io.IOException;
-import java.net.Socket;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.config.ConnectionConfigFactory;
 import static org.junit.Assert.*;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Test;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
 
 /**
  *
@@ -131,7 +131,6 @@ public class ServerConnectionManagerTest
     }
 
     @Test
-    @Ignore
     public void testRunAcceptedSocketSSL() throws IOException,
                                                   InterruptedException,
                                                   URISyntaxException,
@@ -166,18 +165,5 @@ public class ServerConnectionManagerTest
         assertTrue(instance.isListening());
         instance.shutdown();
         assertFalse(instance.isListening());
-    }
-
-    /**
-     * Test of run method, of class ServerConnectionManager.
-     */
-    @Test @Ignore
-    public void testRun()
-    {
-        System.out.println("run");
-        ServerConnectionManager instance = null;
-        instance.run();
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 }

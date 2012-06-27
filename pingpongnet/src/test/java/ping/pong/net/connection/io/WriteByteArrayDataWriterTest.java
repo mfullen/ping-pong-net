@@ -7,11 +7,11 @@ import java.net.UnknownHostException;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.*;
 
 /**
  *

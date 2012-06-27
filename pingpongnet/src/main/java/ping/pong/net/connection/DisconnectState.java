@@ -6,6 +6,12 @@ package ping.pong.net.connection;
  */
 public enum DisconnectState
 {
+    /**
+     *
+     */
     NORMAL,
+    /**
+     *
+     */
     ERROR
 }

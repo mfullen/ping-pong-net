@@ -1,31 +1,19 @@
 package ping.pong.net.server;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.net.Socket;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.io.IoClient;
-import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.messaging.MessageListener;
 
 /**

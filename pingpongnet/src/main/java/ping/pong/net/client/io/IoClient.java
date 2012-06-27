@@ -7,25 +7,29 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.HandshakeCompletedEvent;
+import javax.net.ssl.HandshakeCompletedListener;
+import javax.net.ssl.SSLSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ping.pong.net.client.Client;
 import ping.pong.net.client.ClientConnectionListener;
 import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.ConnectionEvent;
+import ping.pong.net.connection.DisconnectInfo;
+import ping.pong.net.connection.DisconnectState;
+import ping.pong.net.connection.config.ConnectionConfigFactory;
+import ping.pong.net.connection.config.ConnectionConfiguration;
 import ping.pong.net.connection.io.DataReader;
 import ping.pong.net.connection.io.DataWriter;
-import ping.pong.net.connection.DisconnectState;
-import ping.pong.net.connection.config.ConnectionConfiguration;
-import ping.pong.net.connection.config.ConnectionConfigFactory;
-import ping.pong.net.connection.DisconnectInfo;
 import ping.pong.net.connection.messaging.Envelope;
 import ping.pong.net.connection.messaging.MessageListener;
+import ping.pong.net.connection.ssl.SSLUtils;
 
 /**
  * The Io Client Implementation of the Client interface.
  *
+ * @param <Message>
  * @author mfullen
  */
 public class IoClient<Message> implements Client<Message>
@@ -84,9 +88,10 @@ public class IoClient<Message> implements Client<Message>
     }
 
     /**
-     * getConnection creates a new connection if one doesn't exist. Attempts to connect
-     * right away. If the connection fails to connect it returns null
-     * If a connection is already active it returns that connection
+     * getConnection creates a new connection if one doesn't exist. Attempts to
+     * connect right away. If the connection fails to connect it returns null If
+     * a connection is already active it returns that connection
+     *
      * @return
      */
     protected final Connection<Message> getConnection()
@@ -96,8 +101,25 @@ public class IoClient<Message> implements Client<Message>
             LOGGER.warn("Creating new connection");
             try
             {
-                SocketFactory factory = config.isSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
+                SocketFactory factory = config.isSsl()
+                        ? SSLUtils.createSSLContext(config).getSocketFactory()
+                        : SocketFactory.getDefault();
+
                 Socket tcpSocket = factory.createSocket(config.getIpAddress(), config.getPort());
+
+                if (config.isSsl())
+                {
+                    SSLSocket sslSocket = (SSLSocket) tcpSocket;
+                    sslSocket.addHandshakeCompletedListener(new HandshakeCompletedListener()
+                    {
+                        @Override
+                        public void handshakeCompleted(HandshakeCompletedEvent hce)
+                        {
+                            LOGGER.debug("Handshake Completed");
+                        }
+                    });
+                    sslSocket.startHandshake();
+                }
 
                 DatagramSocket udpSocket = null;
                 InetSocketAddress localSocketAddress = new InetSocketAddress(0);
@@ -232,11 +254,19 @@ public class IoClient<Message> implements Client<Message>
         }
     }
 
+    /**
+     *
+     * @param customDataReader
+     */
     public void setCustomDataReader(DataReader customDataReader)
     {
         this.customDataReader = customDataReader;
     }
 
+    /**
+     *
+     * @param customDataWriter
+     */
     public void setCustomDataWriter(DataWriter customDataWriter)
     {
         this.customDataWriter = customDataWriter;
