@@ -10,6 +10,12 @@ public final class EnvelopeFactory
     {
     }
 
+    /**
+     *
+     * @param <MessageType>
+     * @param message
+     * @return
+     */
     public static <MessageType> Envelope createTcpEnvelope(MessageType message)
     {
         DefaultEnvelope<MessageType> envelope = new DefaultEnvelope<MessageType>();
@@ -18,6 +24,12 @@ public final class EnvelopeFactory
         return envelope;
     }
 
+    /**
+     *
+     * @param <MessageType>
+     * @param message
+     * @return
+     */
     public static <MessageType> Envelope createUdpEnvelope(MessageType message)
     {
         DefaultEnvelope<MessageType> envelope = new DefaultEnvelope<MessageType>();

@@ -5,6 +5,7 @@ import java.net.Socket;
 
 /**
  * Datawriter for a TCP socket
+ * @param <Type>
  * @author mfullen
  */
 public interface DataWriter<Type>

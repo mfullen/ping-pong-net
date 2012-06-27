@@ -18,6 +18,8 @@ public final class ConnectionExceptionHandler
     /**
      *
      * @param ex
+     * @param logger
+     * @return
      */
     public static DisconnectState handleException(final Exception ex, Logger logger)
     {

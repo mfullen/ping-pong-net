@@ -7,6 +7,7 @@ import ping.pong.net.connection.messaging.MessageListener;
 
 /**
  *
+ * @param <Message>
  * @author mfullen
  */
 public interface Server<Message>

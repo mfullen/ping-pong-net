@@ -8,6 +8,7 @@ public interface RunnableEventListener
 {
     /**
      * Allows the listener to be notified that the runnable has closed.
+     * @param disconnectState
      */
     void onRunnableClosed(DisconnectState disconnectState);
 }

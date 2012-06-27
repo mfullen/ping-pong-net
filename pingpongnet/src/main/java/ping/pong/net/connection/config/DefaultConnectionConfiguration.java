@@ -11,8 +11,16 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultConnectionConfiguration implements ConnectionConfiguration
 {
+    /**
+     *
+     */
     public static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnectionConfiguration.class);
 
+    /**
+     *
+     * @param filepath
+     * @return
+     */
     public static String findKeyStorePath(String filepath)
     {
         if (filepath == null)
@@ -51,7 +59,7 @@ public class DefaultConnectionConfiguration implements ConnectionConfiguration
 
     DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl)
     {
-        this(port, udpPort, ipAddress, ssl, ssl ? findKeyStorePath(null) : null, DEFAULT_KEY_STORE_PASSWORD);
+        this(port, udpPort, ipAddress, ssl, ssl ? getKeystoreFromClassPath() : DEFAULT_KEY_STORE, DEFAULT_KEY_STORE_PASSWORD);
     }
 
     DefaultConnectionConfiguration(int port, int udpPort, String ipAddress, boolean ssl, String keystorePath, String keystorePassword)

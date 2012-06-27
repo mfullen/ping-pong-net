@@ -16,25 +16,57 @@ import ping.pong.net.server.ServerConnectionListener;
 
 /**
  *
+ * @param <MessageType>
  * @author mfullen
  */
 public class IoServer<MessageType> implements
         Server<MessageType>
 {
+    /**
+     *
+     */
     public static final Logger LOGGER = LoggerFactory.getLogger(IoServer.class);
+    /**
+     *
+     */
     protected Map<Integer, Connection> connectionsMap = new ConcurrentHashMap<Integer, Connection>();
+    /**
+     *
+     */
     protected ServerConnectionManager<MessageType> serverConnectionManager = null;
+    /**
+     *
+     */
     protected ConnectionConfiguration config = null;
+    /**
+     *
+     */
     protected List<MessageListener> messageListeners = new ArrayList<MessageListener>();
+    /**
+     *
+     */
     protected List<ServerConnectionListener> connectionListeners = new ArrayList<ServerConnectionListener>();
+    /**
+     *
+     */
     protected DataReader customDataReader = null;
+    /**
+     *
+     */
     protected DataWriter customDataWriter = null;
 
+    /**
+     *
+     */
     public IoServer()
     {
         this(ConnectionConfigFactory.createConnectionConfiguration());
     }
 
+    /**
+     *
+     * @param config
+     */
     public IoServer(ConnectionConfiguration config)
     {
         this.config = config;
@@ -231,6 +263,7 @@ public class IoServer<MessageType> implements
 
     /**
      * Set the custom Data Reader used to read messages from a TCP socket
+     *
      * @param customDataReader the reader to set
      */
     public void setCustomDataReader(DataReader customDataReader)
@@ -240,6 +273,7 @@ public class IoServer<MessageType> implements
 
     /**
      * Set the custom Data writer used to write messages to a TCP socket
+     *
      * @param customDataWriter
      */
     public void setCustomDataWriter(DataWriter customDataWriter)

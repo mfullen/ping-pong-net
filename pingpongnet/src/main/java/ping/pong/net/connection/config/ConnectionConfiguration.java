@@ -55,7 +55,7 @@ public interface ConnectionConfiguration
 
     /**
      * Set the port the UDP connection will use
-     * @param port
+     * @param udpport
      */
     void setUdpPort(int udpport);
 

@@ -8,7 +8,17 @@ import ping.pong.net.connection.Connection;
  */
 public interface ServerConnectionListener
 {
+    /**
+     *
+     * @param server
+     * @param conn
+     */
     void connectionAdded(Server server, Connection conn);
 
+    /**
+     *
+     * @param server
+     * @param conn
+     */
     void connectionRemoved(Server server, Connection conn);
 }

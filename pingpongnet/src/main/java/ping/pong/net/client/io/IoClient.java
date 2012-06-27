@@ -26,6 +26,7 @@ import ping.pong.net.connection.messaging.MessageListener;
 /**
  * The Io Client Implementation of the Client interface.
  *
+ * @param <Message>
  * @author mfullen
  */
 public class IoClient<Message> implements Client<Message>
@@ -232,11 +233,19 @@ public class IoClient<Message> implements Client<Message>
         }
     }
 
+    /**
+     *
+     * @param customDataReader
+     */
     public void setCustomDataReader(DataReader customDataReader)
     {
         this.customDataReader = customDataReader;
     }
 
+    /**
+     *
+     * @param customDataWriter
+     */
     public void setCustomDataWriter(DataWriter customDataWriter)
     {
         this.customDataWriter = customDataWriter;
