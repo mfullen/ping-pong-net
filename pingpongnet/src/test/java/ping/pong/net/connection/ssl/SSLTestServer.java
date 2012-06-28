@@ -5,9 +5,13 @@ import java.net.ServerSocket;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.*;
+import ping.pong.net.connection.Connection;
 import ping.pong.net.connection.config.ConnectionConfigFactory;
 import ping.pong.net.connection.config.ConnectionConfiguration;
+import ping.pong.net.connection.messaging.EnvelopeFactory;
+import ping.pong.net.connection.messaging.MessageListener;
 import ping.pong.net.server.Server;
+import ping.pong.net.server.ServerConnectionListener;
 import ping.pong.net.server.io.IoServer;
 
 /**
@@ -27,6 +31,28 @@ public class SSLTestServer
     public static void usePPNServer()
     {
         Server<String> server = new IoServer<String>(ConnectionConfigFactory.createPPNServerConfig(2011, true));
+        server.addConnectionListener(new ServerConnectionListener<String>()
+        {
+            @Override
+            public void connectionAdded(Server<String> server, Connection<String> conn)
+            {
+                conn.sendMessage(EnvelopeFactory.createTcpEnvelope("Test From Server"));
+            }
+
+            @Override
+            public void connectionRemoved(Server<String> server, Connection<String> conn)
+            {
+                //
+            }
+        });
+        server.addMessageListener(new MessageListener<Connection, String>()
+        {
+            @Override
+            public void messageReceived(Connection source, String message)
+            {
+                System.out.println("Received Message: " + message);
+            }
+        });
         server.start();
     }
 

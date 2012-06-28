@@ -6,19 +6,19 @@ import ping.pong.net.connection.Connection;
  *
  * @author mfullen
  */
-public interface ServerConnectionListener
+public interface ServerConnectionListener<MessageType>
 {
     /**
      *
      * @param server
      * @param conn
      */
-    void connectionAdded(Server server, Connection conn);
+    void connectionAdded(Server<MessageType> server, Connection<MessageType> conn);
 
     /**
      *
      * @param server
      * @param conn
      */
-    void connectionRemoved(Server server, Connection conn);
+    void connectionRemoved(Server<MessageType> server, Connection<MessageType> conn);
 }
